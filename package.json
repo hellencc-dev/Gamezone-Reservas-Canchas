@@ -24,6 +24,7 @@
     "@types/react-router-dom": "^5.3.3",
     "firebase": "^12.13.0",
     "ionicons": "^7.4.0",
+    "lucide-react": "^1.17.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-router": "^5.3.4",
