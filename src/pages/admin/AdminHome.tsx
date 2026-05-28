@@ -5,8 +5,10 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
+  IonButtons,
 } from "@ionic/react";
 import { useAuth } from "../../hooks/useAuth";
+import NotificationBell from "../../components/shared/NotificationBell";
 
 export default function AdminHome() {
   const { user, logout } = useAuth();
@@ -16,6 +18,10 @@ export default function AdminHome() {
       <IonHeader>
         <IonToolbar>
           <IonTitle>GameZone Administrador</IonTitle>
+
+          <IonButtons slot="end">
+            <NotificationBell />
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
 

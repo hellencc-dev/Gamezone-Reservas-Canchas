@@ -7,6 +7,7 @@ import Register from "../pages/auth/Register";
 import ClientHome from "../pages/client/ClientHome";
 import AdminHome from "../pages/admin/AdminHome";
 import { useAuth } from "../hooks/useAuth";
+import Notifications from "../pages/shared/Notifications";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -52,6 +53,13 @@ export default function AppRoutes() {
           path="/admin"
           component={AdminHome}
           allowedRoles={["admin"]}
+        />
+
+        <ProtectedRoute
+          exact
+          path="/notifications"
+          component={Notifications}
+          allowedRoles={["client", "admin"]}
         />
 
         <Route exact path="/">
