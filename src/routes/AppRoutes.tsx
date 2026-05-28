@@ -4,6 +4,7 @@ import { IonReactRouter } from "@ionic/react-router";
 
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
+import Home from "../pages/Home";
 import ClientHome from "../pages/client/ClientHome";
 import AdminHome from "../pages/admin/AdminHome";
 import { useAuth } from "../hooks/useAuth";
@@ -62,9 +63,7 @@ export default function AppRoutes() {
           allowedRoles={["client", "admin"]}
         />
 
-        <Route exact path="/">
-          <Redirect to="/login" />
-        </Route>
+        <Route exact path="/" component={Home} />
       </IonRouterOutlet>
     </IonReactRouter>
   );
