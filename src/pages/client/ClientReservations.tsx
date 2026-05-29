@@ -100,7 +100,7 @@ export default function ClientReservations() {
                   return (
                     <div
                       key={r.id}
-                      onClick={() => history.push(r.status === "temporary" ? "/client/reservations/pending" : `/client/reservations/${r.id}`)}
+                      onClick={() => history.push(`/client/reservations/${r.id}`)}
                       className="block cursor-pointer"
                     >
                       <Card className="p-4 rounded-2xl border-border bg-card hover:border-primary/40 hover:shadow-elevated transition flex items-center gap-4 shadow-sm">
@@ -141,6 +141,7 @@ export default function ClientReservations() {
 }
 
 function CalendarView({ reservations }: { reservations: any[] }) {
+  const history = useHistory();
   const start = new Date(2026, 4, 1); // Mayo 2026 como base fija
   const days = Array.from({ length: 35 }).map((_, i) => {
     const d = new Date(start);
@@ -163,26 +164,25 @@ function CalendarView({ reservations }: { reservations: any[] }) {
       </div>
       <div className="grid grid-cols-7 gap-1 mt-2">
         {days.map((d, i) => {
-          // Transformamos la fecha de la celda actual al formato ISO 'YYYY-MM-DD' de forma segura
           const year = d.getFullYear();
           const month = String(d.getMonth() + 1).padStart(2, "0");
           const day = String(d.getDate()).padStart(2, "0");
           const cellIsoDate = `${year}-${month}-${day}`;
           
-          // Buscamos si existe alguna reserva confirmada para este día usando el formato ISO real
           const dayReservation = reservations.find(
             (x) => x.date === cellIsoDate && x.status === "confirmed"
           );
           
-          const out = d.getMonth() !== 4; // Determina si el día pertenece a un mes fuera de Mayo
+          const out = d.getMonth() !== 4;
 
           return (
             <div
               key={i}
+              onClick={() => dayReservation && history.push(`/client/reservations/${dayReservation.id}`)}
               className={cn(
                 "aspect-square rounded-lg border p-1.5 text-xs relative flex flex-col justify-between transition",
                 out ? "opacity-30 border-transparent bg-transparent" : "border-border bg-background",
-                dayReservation && "bg-primary-soft border-primary/30",
+                dayReservation && "bg-primary-soft border-primary/30 cursor-pointer hover:border-primary/60",
               )}
             >
               <div className={cn("font-bold text-muted-foreground", dayReservation && "text-primary")}>

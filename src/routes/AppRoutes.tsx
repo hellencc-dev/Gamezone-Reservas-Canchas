@@ -1,4 +1,4 @@
-import { Redirect, Route } from "react-router-dom";
+import { Redirect, Route, Switch } from "react-router-dom";
 import { IonRouterOutlet } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -48,6 +48,7 @@ export default function AppRoutes() {
       <IonRouterOutlet>
         <Route exact path="/login" component={Login} />
         <Route exact path="/register" component={Register} />
+        <Route exact path="/" component={Home} />
 
         <ProtectedRoute
           exact
@@ -91,26 +92,26 @@ export default function AppRoutes() {
           allowedRoles={["client", "admin"]}
         />
 
-        {<ProtectedRoute
+        <ProtectedRoute
           exact
           path="/client/courts/:courtId/book"
           component={BookCourt}
           allowedRoles={["client", "admin"]}
         />
-        }
+
         <ProtectedRoute
           exact
           path="/client/reservations"
           component={ClientReservations}
           allowedRoles={["client", "admin"]}
         />
-
         <ProtectedRoute
           exact
-          path="/client/reservations/pending"
+          path="/client/reserve/pending"
           component={PendingReservation}
           allowedRoles={["client", "admin"]}
         />
+
         <ProtectedRoute
           exact
           path="/client/reservations/:id"
@@ -118,7 +119,6 @@ export default function AppRoutes() {
           allowedRoles={["client", "admin"]}
         />
 
-        <Route exact path="/" component={Home} />
       </IonRouterOutlet>
     </IonReactRouter>
   );

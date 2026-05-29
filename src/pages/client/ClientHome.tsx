@@ -117,7 +117,7 @@ export default function ClientHome() {
               <Button variant="secondary" className="rounded-xl h-11" onClick={() => history.push("/client/courts", { selectedSport: "all" })}>
                 <Plus className="mr-1 h-4 w-4" /> Book a court
               </Button>
-              <Button variant="outline" className="rounded-xl h-11 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/my-reservations")}>
+              <Button variant="outline" className="rounded-xl h-11 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/reservations")}>
                 My reservations
               </Button>
             </div>
@@ -153,7 +153,7 @@ export default function ClientHome() {
                 className="rounded-2xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-elevated transition-all text-center cursor-pointer shadow-sm"
               >
                 <div className={`h-12 w-12 mx-auto rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center`}>
-                  <s.icon className="h-6 w-6 text-white" />
+                  <div className="h-6 w-6 text-white flex items-center justify-center">⚽</div>
                 </div>
                 <div className="mt-3 font-medium text-sm">{s.name}</div>
                 <div className="text-[11px] text-muted-foreground">{s.courts} courts</div>
@@ -184,7 +184,7 @@ export default function ClientHome() {
                 return (
                   <div
                     key={r.id}
-                    onClick={() => history.push(r.status === "temporary" ? "/client/reservations/pending" : `/client/reservations/${r.id}`)}
+                    onClick={() => history.push(`/client/reservations/${r.id}`)}
                     className="flex items-center gap-4 rounded-xl border border-border bg-background p-3 hover:border-primary/40 transition cursor-pointer shadow-sm"
                   >
                     <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-secondary flex items-center justify-center">
@@ -228,7 +228,10 @@ export default function ClientHome() {
             <Button 
               disabled={!activeHold || (timeLeft !== null && timeLeft <= 0)}
               className="w-full mt-4 rounded-xl font-medium cursor-pointer" 
-              onClick={() => history.push("/client/reservations/pending")}
+              onClick={() => history.push({
+                pathname: "/client/reserve/pending",
+                state: { reservationId: activeHold?.id }
+              })}
             >
               Complete payment
             </Button>

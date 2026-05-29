@@ -6,7 +6,6 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { StatusBadge } from "../../components/status-badge";
 import { useCourts } from "../../hooks/useCourts";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
@@ -84,7 +83,8 @@ export default function BookCourt() {
 
       // Guardamos la reserva y obtenemos su referencia
       const docRef = await addDoc(collection(db, "reservations"), newReservation);
-            await createNotification({
+      
+      await createNotification({
         userId: user.uid,
         title: "Cancha Retenida ⏳",
         message: `Tu espacio en ${court?.name || "la cancha"} está reservado. Tienes 5 minutos para completar el pago.`,
@@ -93,7 +93,11 @@ export default function BookCourt() {
         courtId: courtId
       });
       
-      history.push("/client/reservations/pending");
+      // CAMBIO CLAVE: Redirigimos al nuevo path limpio mandando el ID en el estado
+      history.push({
+        pathname: "/client/reserve/pending",
+        state: { reservationId: docRef.id }
+      });
 
     } catch (error) {
       console.error("Error al guardar el hold de la reserva:", error);
