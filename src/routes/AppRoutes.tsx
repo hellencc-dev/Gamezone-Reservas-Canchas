@@ -15,6 +15,7 @@ import CourtAvailability from "../pages/client/CourtAvailability";
 import BookCourt from "../pages/client/BookCourt";
 import ClientReservations from "../pages/client/ClientReservations";
 import PendingReservation from "../pages/client/PendingReservation";
+import ReservationDetail from "../pages/client/ReservaDetail";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -108,6 +109,12 @@ export default function AppRoutes() {
           exact
           path="/client/reservations/pending"
           component={PendingReservation}
+          allowedRoles={["client", "admin"]}
+        />
+        <ProtectedRoute
+          exact
+          path="/client/reservations/:id"
+          component={ReservationDetail}
           allowedRoles={["client", "admin"]}
         />
 
