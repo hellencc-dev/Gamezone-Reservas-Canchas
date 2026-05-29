@@ -10,6 +10,7 @@ import AdminHome from "../pages/admin/AdminHome";
 import { useAuth } from "../hooks/useAuth";
 import Notifications from "../pages/shared/Notifications";
 import CourtsList from "../pages/client/CourtList";
+import CourtDetail from "../pages/client/CourtDetail";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -70,6 +71,21 @@ export default function AppRoutes() {
           component={CourtsList}
           allowedRoles={["client", "admin"]}
         />
+        
+        <ProtectedRoute
+          exact
+          path="/client/courts/:courtId"
+          component={CourtDetail}
+          allowedRoles={["client", "admin"]}
+        />
+
+        {/* <ProtectedRoute
+          exact
+          path="/client/courts/:courtId/book"
+          component={BookCourt}
+          allowedRoles={["client", "admin"]}
+        />
+        */}
 
         <Route exact path="/" component={Home} />
       </IonRouterOutlet>
