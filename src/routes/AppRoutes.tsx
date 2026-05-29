@@ -11,6 +11,7 @@ import { useAuth } from "../hooks/useAuth";
 import Notifications from "../pages/shared/Notifications";
 import CourtsList from "../pages/client/CourtList";
 import CourtDetail from "../pages/client/CourtDetail";
+import CourtAvailability from "../pages/client/CourtAvailability";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -71,11 +72,18 @@ export default function AppRoutes() {
           component={CourtsList}
           allowedRoles={["client", "admin"]}
         />
-        
+
         <ProtectedRoute
           exact
           path="/client/courts/:courtId"
           component={CourtDetail}
+          allowedRoles={["client", "admin"]}
+        />
+
+        <ProtectedRoute
+          exact
+          path="/client/courts/:courtId/availability"
+          component={CourtAvailability}
           allowedRoles={["client", "admin"]}
         />
 

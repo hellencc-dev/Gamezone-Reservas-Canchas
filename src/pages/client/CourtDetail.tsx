@@ -150,7 +150,7 @@ export default function CourtDetail() {
                 <div className="space-y-3">
                   <Button 
                     className="w-full h-12 rounded-xl shadow-brand font-medium text-base cursor-pointer"
-                    onClick={() => history.push(`/client/courts/${court.id}/book`)}
+                    onClick={() => history.push(`/client/courts/${court.id}/availability`)}
                   >
                     <Calendar className="mr-2 h-4 w-4" /> Book now
                   </Button>
