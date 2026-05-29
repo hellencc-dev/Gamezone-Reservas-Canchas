@@ -96,7 +96,7 @@ export default function PendingReservation() {
       });
 
       alert("¡Pago procesado con éxito! Tu reserva está confirmada.");
-      history.push("/client/my-reservations");
+      history.push("/client/reservations");
     } catch (error) {
       console.error("Error al confirmar reserva:", error);
     } finally {
