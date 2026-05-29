@@ -18,16 +18,13 @@ import { StatusBadge } from "../../components/status-badge";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useCourts } from "../../hooks/useCourts";
+import { useReservations } from "../../hooks/useReservations";
 
 export default function ClientHome() {
   const { user } = useAuth();
   const { courts, loading } = useCourts();
   const history = useHistory();
-
-  // Estructura de datos de reservas extraída fielmente de Lovable
-  const reservations = [
-    { id: "res-1", courtId: "c1", date: "28 de Mayo", start: "07:00 PM", end: "08:00 PM", status: "confirmed" }
-  ];
+  const { reservations, loadingReservations } = useReservations();
 
   const upcoming = reservations.filter((r) => r.status === "confirmed" || r.status === "temporary");
 
@@ -126,9 +123,9 @@ export default function ClientHome() {
                     No upcoming reservations
                   </div>
                 )}
-                
+
                 {/* Control de seguridad: solo mapeamos si ya cargaron las canchas */}
-                {!loading && courts && upcoming.map((r) => {
+                {!loading && !loadingReservations && courts && upcoming.map((r) => {
                   const c = courts.find((court) => court.id === r.courtId);
 
                   return (
@@ -150,7 +147,7 @@ export default function ClientHome() {
                           <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c?.location || "GameZone"}</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {r.date} · {r.start} – {r.end}
+                          {r.date} · {r.startTime} – {r.endTime}
                         </div>
                       </div>
                       <StatusBadge status={r.status} />
