@@ -12,6 +12,7 @@ export interface ReservationFirebase {
   endTime: string;
   status: string;
   totalPrice: number;
+  createdAt?: any;
 }
 
 export function useReservations() {
