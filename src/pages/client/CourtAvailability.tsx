@@ -1,0 +1,243 @@
+import { useState, useEffect } from "react";
+import { useParams, useHistory } from "react-router-dom";
+import { IonPage, IonContent } from "@ionic/react";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { useCourts } from "../../hooks/useCourts";
+import { useAuth } from "../../hooks/useAuth";
+import { db } from "../../firebase/config";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { cn } from "../../lib/utils";
+
+// Lista de horarios del prototipo de Lovable
+const TIME_SLOTS = [
+  "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
+  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", 
+  "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM"
+];
+
+// Generador de semanas dinámicas basado en el prototipo
+function getWeek(offset: number) {
+  const now = new Date(); // Usa la fecha actual real en producción
+  now.setDate(now.getDate() + offset * 7);
+  const start = new Date(now);
+  start.setDate(start.getDate() - start.getDay()); // Inicia en Domingo
+  return Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    return d;
+  });
+}
+
+function iso(d: Date) {
+  return d.toISOString().slice(0, 10); // Formato estándar: "YYYY-MM-DD"
+}
+
+export default function CourtAvailability() {
+  const { courtId } = useParams<{ courtId: string }>();
+  const history = useHistory();
+  const { user } = useAuth();
+  const { courts, loading } = useCourts();
+
+  const court = courts?.find((c) => c.id === courtId);
+
+  // Estados de navegación y selección
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<string>(iso(new Date()));
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  
+  // Estado para almacenar las reservas reales activas de este día desde Firebase
+  const [dayReservations, setDayReservations] = useState<any[]>([]);
+
+  const week = getWeek(weekOffset);
+
+  useEffect(() => {
+    if (!courtId || !selectedDate) return;
+
+    const q = query(
+      collection(db, "reservations"),
+      where("courtId", "==", courtId),
+      where("date", "==", selectedDate),
+      where("status", "==", "confirmed")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const resList: any[] = [];
+      snapshot.forEach((doc) => {
+        resList.push(doc.data());
+      });
+      setDayReservations(resList);
+    });
+
+    return () => unsubscribe();
+  }, [courtId, selectedDate]);
+
+  // Función inteligente para determinar el estado de cada celda en tiempo real
+  const getSlotStatus = (slot: string) => {
+    const existingRes = dayReservations.find((r) => r.startTime === slot);
+    if (!existingRes) return "available";
+    return existingRes.userId === user?.uid ? "mine" : "busy";
+  };
+
+  const handleContinue = () => {
+    if (!selectedSlot) return;
+    history.push(`/client/courts/${courtId}/book`, {
+      date: selectedDate,
+      slot: selectedSlot
+    });
+  };
+
+  if (loading) {
+    return (
+      <IonPage>
+        <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
+          Loading availability...
+        </div>
+      </IonPage>
+    );
+  }
+
+  if (!court) {
+    return (
+      <IonPage>
+        <div className="w-full min-h-screen bg-[#f8fafc] p-6 text-center">
+          <p className="text-lg font-bold">Court not found</p>
+          <Button onClick={() => history.push("/client/courts")} className="mt-4">Back to courts</Button>
+        </div>
+      </IonPage>
+    );
+  }
+
+  return (
+    <IonPage className="bg-transparent border-none">
+      <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
+        <div className="w-full min-h-screen text-[#334155]">
+          <main className="max-w-4xl mx-auto space-y-6 p-6 md:p-10">
+
+            {/* Botón de Regreso */}
+            <button 
+              onClick={() => history.push(`/client/courts/${court.id}`)} 
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to {court.name}
+            </button>
+
+            <div>
+              <h1 className="text-3xl font-display font-bold">Pick your slot</h1>
+              <p className="text-muted-foreground mt-1">Select a date and time to continue.</p>
+            </div>
+
+            <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
+              {/* Selector de Semana */}
+              <div className="flex items-center justify-between">
+                <h3 className="font-display font-bold text-lg capitalize">
+                  {week[0].toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                </h3>
+                <div className="flex gap-1">
+                  <Button variant="outline" size="icon" className="rounded-xl cursor-pointer" onClick={() => setWeekOffset(weekOffset - 1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" className="rounded-xl cursor-pointer" onClick={() => setWeekOffset(weekOffset + 1)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Grilla de los 7 Días de la semana */}
+              <div className="mt-4 grid grid-cols-7 gap-2">
+                {week.map((d) => {
+                  const key = iso(d);
+                  const active = key === selectedDate;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => { setSelectedDate(key); setSelectedSlot(null); }}
+                      className={cn(
+                        "rounded-xl border py-3 text-center transition cursor-pointer",
+                        active
+                          ? "bg-primary text-primary-foreground border-primary shadow-brand"
+                          : "bg-background border-border hover:border-primary/40",
+                      )}
+                    >
+                      <div className={cn("text-[10px] uppercase tracking-wider font-semibold", active ? "opacity-80" : "text-muted-foreground")}>
+                        {d.toLocaleDateString(undefined, { weekday: "short" })}
+                      </div>
+                      <div className="text-lg font-display font-bold mt-1">{d.getDate()}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sección de Horarios Disponibles */}
+              <div className="mt-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h3 className="font-display font-bold">Available times</h3>
+                  <div className="flex items-center gap-4 text-xs">
+                    <Legend color="bg-success" label="Available" />
+                    <Legend color="bg-danger" label="Occupied" />
+                    <Legend color="bg-warning" label="Yours" />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {TIME_SLOTS.map((slot) => {
+                    const status = getSlotStatus(slot);
+                    const active = selectedSlot === slot;
+                    const disabled = status !== "available";
+                    return (
+                      <button
+                        key={slot}
+                        disabled={disabled}
+                        onClick={() => setSelectedSlot(slot)}
+                        className={cn(
+                          "rounded-xl border py-3 text-sm font-medium transition relative",
+                          active && "ring-2 ring-primary ring-offset-2 z-10",
+                          status === "available" && "bg-success-soft text-success border-success/20 hover:bg-success/15 cursor-pointer",
+                          status === "busy" && "bg-danger-soft text-danger border-danger/20 opacity-60 cursor-not-allowed",
+                          status === "mine" && "bg-warning-soft text-warning border-warning/30 cursor-not-allowed",
+                        )}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Barra Inferior de Acción */}
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-secondary p-4">
+                <div className="text-sm">
+                  {selectedSlot ? (
+                    <>
+                      <span className="text-muted-foreground">Selected: </span>
+                      <span className="font-semibold text-foreground">{selectedDate} · {selectedSlot}</span>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Pick a green slot to continue</span>
+                  )}
+                </div>
+                <Button
+                  disabled={!selectedSlot}
+                  onClick={handleContinue}
+                  className="rounded-xl h-11 px-6 shadow-brand font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue to booking
+                </Button>
+              </div>
+
+            </Card>
+          </main>
+        </div>
+      </IonContent>
+    </IonPage>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+      <span className={cn("h-2.5 w-2.5 rounded-full", color)} /> {label}
+    </span>
+  );
+}

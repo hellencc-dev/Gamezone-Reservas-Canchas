@@ -1,322 +1,168 @@
+import { useState } from "react";
+import { IonPage, IonContent } from "@ionic/react";
 import {
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-} from "@ionic/react";
-import {
-  alertCircle,
-  arrowBack,
-  calendar,
-  card,
-  checkmarkDone,
-  checkmarkDoneCircle,
-  closeCircle,
-  mailOpen,
-  notifications,
-  notificationsOff,
-  sync,
-  time,
-} from "ionicons/icons";
-import { useMemo, useState } from "react";
-import { useHistory } from "react-router-dom";
-import {
-  AppNotification,
-  NotificationType,
-  useNotifications,
-} from "../../hooks/useNotifications";
+  AlertCircle,
+  Bell,
+  BellOff,
+  CheckCheck,
+  CheckCircle2,
+  Sparkles,
+  XCircle,
+} from "lucide-react";
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { useNotifications, NotificationType } from "../../hooks/useNotifications";
+import { cn } from "../../lib/utils";
 
-type FilterTab = "all" | "unread";
-
-const notificationStyles: Record<
-  NotificationType,
-  {
-    label: string;
-    icon: string;
-    badge: string;
-    border: string;
-  }
-> = {
-  reservation_created: {
-    label: "Reserva creada",
-    icon: calendar,
-    badge: "bg-blue-50 text-blue-600",
-    border: "border-blue-200 bg-blue-50/50",
-  },
-  reservation_confirmed: {
-    label: "Reserva confirmada",
-    icon: checkmarkDoneCircle,
-    badge: "bg-emerald-50 text-emerald-600",
-    border: "border-emerald-200 bg-emerald-50/50",
-  },
-  reservation_cancelled: {
-    label: "Reserva cancelada",
-    icon: closeCircle,
-    badge: "bg-red-50 text-red-600",
-    border: "border-red-200 bg-red-50/50",
-  },
-  reservation_expired: {
-    label: "Reserva expirada",
-    icon: alertCircle,
-    badge: "bg-amber-50 text-amber-600",
-    border: "border-amber-200 bg-amber-50/50",
-  },
-  payment_pending: {
-    label: "Pago pendiente",
-    icon: card,
-    badge: "bg-violet-50 text-violet-600",
-    border: "border-violet-200 bg-violet-50/50",
-  },
-  availability_updated: {
-    label: "Disponibilidad actualizada",
-    icon: sync,
-    badge: "bg-cyan-50 text-cyan-600",
-    border: "border-cyan-200 bg-cyan-50/50",
-  },
+// Mapeo inteligente: Vincula los tipos de Firebase de tu compañera con los estilos visuales de Lovable
+const typeStyle: Record<NotificationType, { icon: React.ComponentType<{ className?: string }>; cls: string }> = {
+  reservation_created: { icon: CheckCircle2, cls: "bg-success-soft text-success" },
+  reservation_confirmed: { icon: CheckCircle2, cls: "bg-success-soft text-success" },
+  payment_pending: { icon: AlertCircle, cls: "bg-warning-soft text-warning" },
+  reservation_cancelled: { icon: XCircle, cls: "bg-danger-soft text-danger" },
+  reservation_expired: { icon: XCircle, cls: "bg-danger-soft text-danger" },
+  availability_updated: { icon: Sparkles, cls: "bg-primary-soft text-primary" },
 };
 
-const formatDate = (value: string) => {
-  const date = new Date(value);
+export default function NotificationsPage() {
+  // Consumimos directamente la lógica real del hook de tu compañera
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [tab, setTab] = useState<"all" | "unread">("all");
 
-  if (Number.isNaN(date.getTime())) {
-    return "Fecha no disponible";
-  }
+  // Filtrado reactivo basado en la pestaña seleccionada
+  const visibleNotifications = notifications.filter((n) => (tab === "unread" ? !n.read : true));
 
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-};
-
-export default function Notifications() {
-  const history = useHistory();
-  const {
-    notifications: items,
-    loading,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-  } = useNotifications();
-  const [tab, setTab] = useState<FilterTab>("all");
-
-  const visibleNotifications = useMemo(
-    () => items.filter((item) => (tab === "unread" ? !item.read : true)),
-    [items, tab]
-  );
-
-  const summary = unreadCount
-    ? `Tienes ${unreadCount} notificación${
-        unreadCount === 1 ? "" : "es"
-      } sin leer.`
-    : "Estás al día con tus notificaciones.";
-
-  const handleMarkAsRead = async (notification: AppNotification) => {
-    if (!notification.read) {
-      await markAsRead(notification.id);
+  // Formateador estético para la estampa de tiempo ISO de Firebase
+  const formatNotificationTime = (isoString: string) => {
+    try {
+      const date = new Date(isoString);
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "Just now";
     }
   };
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonButton onClick={() => history.goBack()}>
-              <IonIcon icon={arrowBack} slot="start" />
-              Volver
-            </IonButton>
-          </IonButtons>
-
-          <IonTitle>Notificaciones</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
-      <IonContent fullscreen>
-        <div className="min-h-screen bg-[#f8fafc] px-5 py-8 text-slate-950 md:px-8">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <section className="flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-blue-600 to-violet-600 p-6 text-white shadow-2xl shadow-blue-500/20 md:flex-row md:items-end md:justify-between md:p-8">
+    <IonPage className="bg-transparent border-none">
+      <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
+        <div className="w-full min-h-screen text-[#334155] p-6 md:p-10">
+          <div className="max-w-3xl mx-auto space-y-6">
+            
+            {/* Encabezado Principal */}
+            <div className="flex items-end justify-between gap-4 flex-wrap">
               <div>
-                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold text-white/80 backdrop-blur">
-                  <IonIcon icon={notifications} />
-                  Centro de actividad
-                </div>
-                <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">
-                  Historial de notificaciones
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75 md:text-base">
-                  Consulta cambios de reservas, pagos y disponibilidad de tus
-                  canchas en un solo lugar.
+                <h1 className="text-3xl font-display font-bold text-foreground">Notifications</h1>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  {loading 
+                    ? "Checking for new updates..." 
+                    : unreadCount > 0 
+                    ? `You have ${unreadCount} unread notifications.` 
+                    : "You're all caught up."
+                  }
                 </p>
               </div>
-
-              <IonButton
-                fill="outline"
-                disabled={unreadCount === 0}
+              <Button
+                variant="outline"
+                className="rounded-xl font-medium cursor-pointer"
                 onClick={markAllAsRead}
-                className="h-11 shrink-0 [--border-color:rgba(255,255,255,0.45)] [--border-radius:0.75rem] [--color:#ffffff]"
+                disabled={unreadCount === 0 || loading}
               >
-                <IonIcon icon={checkmarkDone} slot="start" />
-                Marcar todas
-              </IonButton>
-            </section>
+                <CheckCheck className="mr-1.5 h-4 w-4" /> Mark all read
+              </Button>
+            </div>
 
-            <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h2 className="text-2xl font-extrabold text-slate-800">
-                  Notificaciones
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">{summary}</p>
+            {/* Pestañas de Filtrado (All / Unread) */}
+            <div className="flex gap-2">
+              {(["all", "unread"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTab(t)}
+                  className={cn(
+                    "rounded-full px-4 py-2 text-sm font-medium border transition capitalize cursor-pointer flex items-center",
+                    tab === t
+                      ? "bg-primary text-primary-foreground border-primary shadow-brand"
+                      : "bg-card text-foreground border-border hover:border-primary/40",
+                  )}
+                >
+                  {t} {t === "unread" && unreadCount > 0 && (
+                    <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold px-1.5">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Renderizado Condicional del Listado */}
+            {loading ? (
+              <div className="text-center p-16 text-muted-foreground font-medium">
+                Loading secure feed...
               </div>
-
-              <div className="flex rounded-full border border-slate-200 bg-white p-1 shadow-sm">
-                {[
-                  { id: "all" as const, label: "Todas" },
-                  { id: "unread" as const, label: "No leídas" },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setTab(item.id)}
-                    className={`rounded-full px-4 py-2 text-sm font-bold transition ${
-                      tab === item.id
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20"
-                        : "text-slate-500 hover:text-slate-950"
-                    }`}
-                  >
-                    {item.label}
-                    {item.id === "unread" && unreadCount > 0 && (
-                      <span
-                        className={`ml-2 inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] ${
-                          tab === item.id
-                            ? "bg-white text-blue-600"
-                            : "bg-orange-500 text-white"
-                        }`}
-                      >
-                        {unreadCount}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            {loading && (
-              <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                  <IonIcon icon={sync} className="text-2xl" />
+            ) : visibleNotifications.length === 0 ? (
+              <Card className="p-16 rounded-2xl border-dashed border-border text-center bg-card shadow-sm">
+                <div className="mx-auto h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center">
+                  <BellOff className="h-7 w-7 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 text-lg font-extrabold text-slate-800">
-                  Cargando notificaciones
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Estamos consultando tu historial en Firestore.
+                <h3 className="mt-4 font-display text-lg font-bold text-foreground">No notifications available</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto leading-relaxed">
+                  We'll let you know when there's something new regarding your matches or local courts.
                 </p>
-              </div>
-            )}
-
-            {!loading && visibleNotifications.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                  <IonIcon icon={notificationsOff} className="text-3xl" />
-                </div>
-                <h3 className="mt-4 text-lg font-extrabold text-slate-800">
-                  No hay notificaciones disponibles
-                </h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-                  Cuando ocurra algo importante en tus reservas, pagos o
-                  disponibilidad, aparecerá aquí.
-                </p>
-              </div>
-            )}
-
-            {!loading && visibleNotifications.length > 0 && (
-              <div className="space-y-3">
-                {visibleNotifications.map((notification) => {
-                  const style = notificationStyles[notification.type];
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {visibleNotifications.map((n) => {
+                  // Resolvemos el estilo de forma segura usando el mapa dinámico
+                  const style = typeStyle[n.type] || typeStyle["availability_updated"];
+                  const StyleIcon = style.icon;
 
                   return (
-                    <article
-                      key={notification.id}
-                      className={`flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow-xl hover:shadow-slate-900/10 sm:flex-row sm:items-start ${
-                        notification.read
-                          ? "border-slate-200"
-                          : style.border
-                      }`}
+                    <Card
+                      key={n.id}
+                      onClick={() => !n.read && markAsRead(n.id)}
+                      className={cn(
+                        "p-4 rounded-2xl border-border bg-card shadow-sm transition flex items-start gap-3",
+                        !n.read ? "bg-primary-soft/30 border-primary/20 ring-1 ring-primary/5 cursor-pointer" : "opacity-85"
+                      )}
                     >
-                      <button
-                        type="button"
-                        onClick={() => handleMarkAsRead(notification)}
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${style.badge}`}
-                        aria-label="Marcar notificación como leída"
-                      >
-                        <IonIcon icon={style.icon} className="text-xl" />
-                      </button>
-
+                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", style.cls)}>
+                        <StyleIcon className="h-5 w-5" />
+                      </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-extrabold text-slate-900">
-                            {notification.title}
+                        <div className="flex items-center gap-2">
+                          <h3 className={cn("font-semibold text-sm md:text-base text-foreground truncate", !n.read && "font-bold")}>
+                            {n.title}
                           </h3>
-                          {!notification.read && (
-                            <span className="h-2 w-2 rounded-full bg-orange-500" />
-                          )}
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${style.badge}`}
-                          >
-                            {style.label}
-                          </span>
+                          {!n.read && <span className="h-2 w-2 rounded-full bg-accent shrink-0 animate-pulse" />}
                         </div>
-
-                        <p className="mt-2 text-sm leading-6 text-slate-600">
-                          {notification.message}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-400">
-                          <span className="inline-flex items-center gap-1">
-                            <IonIcon icon={time} />
-                            {formatDate(notification.createdAt)}
-                          </span>
-                          <span>
-                            {notification.read ? "Leída" : "Pendiente por leer"}
-                          </span>
+                        <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{n.message}</p>
+                        <div className="text-xs text-muted-foreground mt-1.5 font-medium">
+                          {formatNotificationTime(n.createdAt)}
                         </div>
                       </div>
-
-                      {!notification.read && (
-                        <IonButton
-                          fill="clear"
-                          size="small"
-                          onClick={() => markAsRead(notification.id)}
-                          className="[--color:#2563eb] [--border-radius:0.75rem]"
-                        >
-                          <IonIcon icon={mailOpen} slot="start" />
-                          Leída
-                        </IonButton>
-                      )}
-                    </article>
+                    </Card>
                   );
                 })}
               </div>
             )}
 
-            <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row md:items-center">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                <IonIcon icon={notifications} className="text-2xl" />
+            {/* Preferencias Inferiores Estáticas */}
+            <Card className="p-6 rounded-2xl border-border bg-card shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
+                <Bell className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-extrabold text-slate-800">
-                  Preferencias de notificaciones
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-slate-500">
-                  Esta base queda lista para activar alertas por reservas,
-                  pagos y disponibilidad desde Firestore.
-                </p>
+                <div className="font-semibold text-foreground">Manage notification preferences</div>
+                <div className="text-sm text-muted-foreground mt-0.5">Choose how you receive real-time alerts and game reminders.</div>
               </div>
-            </section>
+              <Button variant="outline" className="rounded-xl font-medium cursor-pointer w-full sm:w-auto">Settings</Button>
+            </Card>
+
           </div>
         </div>
       </IonContent>
