@@ -167,7 +167,7 @@ export default function ClientHome() {
           <Card className="lg:col-span-2 p-6 rounded-2xl border-border bg-card shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-display font-bold">Upcoming reservations</h2>
-              <Button size="sm" variant="ghost" onClick={() => history.push("/client/my-reservations")}>
+              <Button size="sm" variant="ghost" onClick={() => history.push("/client/reservations")}>
                 View all
               </Button>
             </div>

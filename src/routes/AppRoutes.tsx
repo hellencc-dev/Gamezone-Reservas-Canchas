@@ -13,6 +13,7 @@ import CourtsList from "../pages/client/CourtList";
 import CourtDetail from "../pages/client/CourtDetail";
 import CourtAvailability from "../pages/client/CourtAvailability";
 import BookCourt from "../pages/client/BookCourt";
+import ClientReservations from "../pages/client/ClientReservations";
 import PendingReservation from "../pages/client/PendingReservation";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
@@ -96,6 +97,12 @@ export default function AppRoutes() {
           allowedRoles={["client", "admin"]}
         />
         }
+        <ProtectedRoute
+          exact
+          path="/client/reservations"
+          component={ClientReservations}
+          allowedRoles={["client", "admin"]}
+        />
 
         <ProtectedRoute
           exact

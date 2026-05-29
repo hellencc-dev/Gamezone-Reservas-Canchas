@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom"; // <-- Usado correctamente abajo
 import { IonPage, IonContent } from "@ionic/react";
 import { AlertCircle, CheckCircle2, Clock, MapPin, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -13,7 +13,7 @@ import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc } 
 const TOTAL_TIME = 5 * 60; // 5 minutos en segundos
 
 export default function PendingReservation() {
-  const history = useHistory();
+  const history = useHistory(); // <-- ¡Listo! Ya está declarado para que funcionen las redirecciones
   const { user } = useAuth();
   const { courts } = useCourts();
 
@@ -85,7 +85,7 @@ export default function PendingReservation() {
       const docRef = doc(db, "reservations", latestHold.id);
       await updateDoc(docRef, { status: "confirmed" });
       alert("¡Pago procesado con éxito! Tu reserva está confirmada.");
-      history.push("/client"); // Pa' la casa con la reserva lista
+      history.push("/client/reservations");
     } catch (error) {
       console.error("Error al confirmar reserva:", error);
     } finally {
@@ -199,7 +199,8 @@ export default function PendingReservation() {
                   <div className="text-xs text-muted-foreground mt-1 font-mono">Reference GZ-{latestHold.id.slice(0, 5).toUpperCase()}</div>
                 </div>
                 <div className="sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
-                  <div className="text-2xl font-display font-bold text-primary">${parseFloat(latestHold.totalPrice || 0).toFixed(2)}</div>
+                  {/* Corregido el parseFloat por el casteo Number seguro */}
+                  <div className="text-2xl font-display font-bold text-primary">${(Number(latestHold.totalPrice) || 0).toFixed(2)}</div>
                   <div className="text-xs text-muted-foreground">incl. fees</div>
                 </div>
               </div>
@@ -213,7 +214,7 @@ export default function PendingReservation() {
                 disabled={timeLeft === 0 || processingAction}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Confirm & pay ${parseFloat(latestHold.totalPrice || 0).toFixed(2)}
+                Confirm & pay ${(Number(latestHold.totalPrice) || 0).toFixed(2)}
               </Button>
               
               <Button 
