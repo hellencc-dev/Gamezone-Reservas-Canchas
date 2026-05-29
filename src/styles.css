@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  /* Hacemos un puente directo a colores HEX tradicionales para asegurar compatibilidad total en el navegador */
+  --background: #f8fafc;          
+  --foreground: #334155;            
+  --card: #ffffff;
+  --card-foreground: #334155;
+  --popover: #ffffff;
+  --popover-foreground: #334155;
+
+  /* Electric blue #0052FF */
+  --primary: #0052ff;
+  --primary-foreground: #ffffff;
+  --primary-soft: #f0f5ff;
+
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  /* Vibrant orange #FF6B00 */
+  --accent: #ff6b00;
+  --accent-foreground: #ffffff;
+  --accent-soft: #fff5ed;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  /* Status */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --success-soft: #ecfdf5;
+  --warning: #f59e0b;
+  --warning-foreground: #78350f;
+  --warning-soft: #fef3c7;
+  --danger: #ef4444;
+  --danger-foreground: #ffffff;
+  --danger-soft: #fef2f2;
+  --neutral-soft: #f3f4f6;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0052ff;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html, body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+/* Forzamos los gradientes con colores fijos para que no dependan del motor oklch viejo */
+@utility gradient-brand {
+  background-image: linear-gradient(135deg, #0052ff 0%, #8b5cf6 100%) !important;
+}
+@utility gradient-accent {
+  background-image: linear-gradient(135deg, #ff6b00 0%, #ff8c3a 100%) !important;
+}
+@utility shadow-elevated {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.12);
+}
+@utility shadow-brand {
+  box-shadow: 0 10px 30px -10px rgba(0, 82, 255, 0.3);
+}

@@ -1,9 +1,5 @@
 import { IonContent, IonPage } from "@ionic/react";
 import { useHistory } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
-import { useNotifications } from "../../hooks/useNotifications";
-import NotificationBell from "../../components/shared/NotificationBell";
-
 import {
   ArrowRight,
   CalendarCheck,
@@ -15,218 +11,189 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
+import { CourtCard } from "../../components/CourtCard";
+import { StatusBadge } from "../../components/status-badge";
+
+import { useAuth } from "../../hooks/useAuth";
+import { useCourts } from "../../hooks/useCourts";
+
 export default function ClientHome() {
-  // 1. Conservamos la autenticación y lógica exacta de tu compañera
-  const { user, logout } = useAuth();
-  const { createNotification } = useNotifications();
+  const { user } = useAuth();
+  const { courts, loading } = useCourts();
   const history = useHistory();
 
-  // Datos y lógica exacta del Dashboard de Lovable
-  const upcoming = [
-    {
-      id: "1",
-      courtId: "c1",
-      name: "Sintética Fútbol 5",
-      location: "Sede Principal",
-      date: "28 de Mayo",
-      start: "07:00 PM",
-      end: "08:00 PM",
-      status: "confirmed",
-      image: "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=150&q=80"
-    }
+  // Estructura de datos de reservas extraída fielmente de Lovable
+  const reservations = [
+    { id: "res-1", courtId: "c1", date: "28 de Mayo", start: "07:00 PM", end: "08:00 PM", status: "confirmed" }
   ];
+
+  const upcoming = reservations.filter((r) => r.status === "confirmed" || r.status === "temporary");
 
   const stats = [
-    { label: "Active bookings", value: upcoming.length, icon: CalendarCheck, tint: "bg-blue-50 text-blue-600" },
-    { label: "Played this month", value: 12, icon: Flame, tint: "bg-orange-50 text-orange-600" },
-    { label: "Hours on court", value: "26h", icon: Clock, tint: "bg-emerald-50 text-emerald-600" },
-    { label: "Loyalty points", value: 1840, icon: TrendingUp, tint: "bg-amber-50 text-amber-600" },
+    { label: "Active bookings", value: upcoming.length, icon: CalendarCheck, tint: "bg-primary-soft text-primary" },
+    { label: "Played this month", value: 12, icon: Flame, tint: "bg-accent-soft text-accent" },
+    { label: "Hours on court", value: "26h", icon: Clock, tint: "bg-success-soft text-success" },
+    { label: "Loyalty points", value: 1840, icon: TrendingUp, tint: "bg-warning-soft text-warning" },
   ];
 
+  // Estructura de deportes exacta de Lovable
   const sports = [
-    { id: "futbol", name: "Fútbol", courts: 5, gradient: "from-emerald-500 to-teal-600" },
-    { id: "tenis", name: "Tenis", courts: 3, gradient: "from-amber-400 to-orange-500" },
-    { id: "baloncesto", name: "Basketball", courts: 2, gradient: "from-blue-500 to-indigo-600" },
+    { id: "futbol", name: "Fútbol", courts: 5, icon: CalendarCheck, gradient: "from-emerald-500 to-teal-600" },
+    { id: "tenis", name: "Tenis", courts: 3, icon: CalendarCheck, gradient: "from-amber-400 to-orange-500" },
+    { id: "baloncesto", name: "Basketball", courts: 2, icon: CalendarCheck, gradient: "from-blue-500 to-indigo-600" },
   ];
 
   return (
     <IonPage>
-      {/* Usamos scrollEvents para que no choque con los layouts de Ionic */}
       <IonContent fullscreen scrollEvents={true}>
-        
-        {/* CONTENEDOR PRINCIPAL: Aquí usamos el diseño puro de Lovable con Tailwind */}
-        <div className="space-y-8 bg-[#f8fafc] min-h-screen p-6 md:p-10 text-slate-900">
-          
-          {/* BARRA SUPERIOR: Simula el Header limpio de Lovable con la campana de tu compañera */}
-          <div className="flex items-center justify-between pb-2">
-            <span className="font-extrabold tracking-tight text-xl text-slate-900">GameZone</span>
-            <div className="scale-110">
-              <NotificationBell />
-            </div>
-          </div>
+        <div className="space-y-8 p-6 md:p-10 bg-[#f8fafc] min-h-screen">
 
-          {/* ====== Hero greeting (Copiado exacto de Lovable) ====== */}
-          <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-violet-600 p-8 md:p-10 text-white shadow-xl relative overflow-hidden">
+          {/* Hero greeting */}
+          <div className="rounded-3xl gradient-brand p-8 md:p-10 text-primary-foreground shadow-brand relative overflow-hidden">
             <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-violet-500/30 blur-3xl" />
-            
+            <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
             <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                {/* Saludo personalizado con la lógica de tu compañera */}
                 <div className="text-sm opacity-80">Good evening, {user?.firstName || "cliente"} 👋</div>
-                <h1 className="mt-2 text-3xl md:text-4xl font-bold tracking-tight">Ready for tonight's match?</h1>
-                <p className="mt-2 text-white/85 max-w-md text-sm">
-                  You have {upcoming.length} upcoming reservations and 8 courts available within 5 km.
+                <h1 className="mt-2 text-3xl md:text-4xl font-display font-bold">Ready for tonight's match?</h1>
+                <p className="mt-2 text-primary-foreground/80 max-w-md">
+                  You have {upcoming.length} upcoming reservations and {courts ? courts.length : 0} courts available within 5 km.
                 </p>
               </div>
-              <div className="flex gap-2 shrink-0">
-                <button 
-                  onClick={() => history.push("/client/sports")}
-                  className="rounded-xl h-11 px-4 bg-white text-blue-600 font-bold text-sm shadow hover:bg-slate-50 transition flex items-center justify-center gap-1"
-                >
-                  <Plus className="h-4 w-4" /> Book a court
-                </button>
-                <button 
-                  onClick={() => history.push("/client/my-reservations")}
-                  className="rounded-xl h-11 px-4 bg-transparent border border-white/30 text-white font-bold text-sm hover:bg-white/10 transition"
-                >
+              <div className="flex gap-2">
+                <Button variant="secondary" className="rounded-xl h-11" onClick={() => history.push("/client/courts")}>
+                  <Plus className="mr-1 h-4 w-4" /> Book a court
+                </Button>
+                <Button variant="outline" className="rounded-xl h-11 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/my-reservations")}>
                   My reservations
-                </button>
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* ====== Stats Grid (Lovable) ====== */}
+          {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s) => (
-              <div key={s.label} className="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm">
+              <Card key={s.label} className="p-5 rounded-2xl border-border">
                 <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${s.tint}`}>
                   <s.icon className="h-5 w-5" />
                 </div>
-                <div className="mt-4 text-2xl font-black text-slate-900 tabular-nums">{s.value}</div>
-                <div className="text-xs text-slate-400 mt-0.5">{s.label}</div>
-              </div>
+                <div className="mt-4 text-2xl font-display font-bold">{s.value}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
+              </Card>
             ))}
           </div>
 
-          {/* ====== Sports quick pick (Lovable) ====== */}
+          {/* Sports quick pick */}
           <section>
             <div className="flex items-end justify-between mb-4">
-              <h2 className="text-xl font-bold tracking-tight text-slate-800">Choose your sport</h2>
-              <button 
-                onClick={() => history.push("/client/sports")} 
-                className="text-sm font-bold text-blue-600 hover:underline flex items-center gap-1 transition"
-              >
-                All sports <ArrowRight className="h-3 w-3" />
-              </button>
+              <h2 className="text-xl font-display font-bold">Choose your sport</h2>
+              <Button variant="ghost" size="sm" onClick={() => history.push("/client/courts")}>
+                All sports <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
             </div>
             <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
               {sports.map((s) => (
-                <button
+                <div
                   key={s.id}
-                  type="button"
                   onClick={() => history.push(`/client/courts?sport=${s.id}`)}
-                  className="rounded-2xl border border-slate-100 bg-white p-4 hover:border-blue-500/40 hover:shadow-md transition text-center flex flex-col items-center w-full"
+                  className="rounded-2xl border border-border bg-card p-4 hover:border-primary/40 hover:shadow-elevated transition-all text-center cursor-pointer"
                 >
-                  <div className={`h-12 w-12 mx-auto rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-sm`}>
-                    <CalendarCheck className="h-6 w-6 text-white" />
+                  <div className={`h-12 w-12 mx-auto rounded-xl bg-gradient-to-br ${s.gradient} flex items-center justify-center`}>
+                    <s.icon className="h-6 w-6 text-white" />
                   </div>
-                  <div className="mt-3 font-bold text-sm text-slate-800">{s.name}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">{s.courts} courts</div>
-                </button>
+                  <div className="mt-3 font-medium text-sm">{s.name}</div>
+                  <div className="text-[11px] text-muted-foreground">{s.courts} courts</div>
+                </div>
               ))}
             </div>
           </section>
 
-          {/* ====== Upcoming + Hold expires soon (Lovable) ====== */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Upcoming reservations */}
-            <div className="lg:col-span-2 p-6 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4">
+          {/* Upcoming + featured */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            <Card className="lg:col-span-2 p-6 rounded-2xl border-border">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-slate-800">Upcoming reservations</h2>
-                <button onClick={() => history.push("/client/my-reservations")} className="text-sm font-bold text-blue-600 hover:underline">
+                <h2 className="text-xl font-display font-bold">Upcoming reservations</h2>
+                <Button size="sm" variant="ghost" onClick={() => history.push("/client/my-reservations")}>
                   View all
-                </button>
+                </Button>
               </div>
-              
-              {upcoming.map((r) => (
-                <div
-                  key={r.id}
-                  onClick={() => history.push(`/client/reservations/${r.id}`)}
-                  className="flex items-center gap-4 rounded-xl border border-slate-100 bg-slate-50/50 p-3 hover:border-blue-500/30 cursor-pointer transition"
-                >
-                  <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-slate-200">
-                    <img src={r.image} alt="" className="h-full w-full object-cover" />
+              <div className="mt-4 space-y-3">
+                {upcoming.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    No upcoming reservations
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-slate-900 truncate">{r.name}</div>
-                    <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                      <MapPin className="h-3 w-3" /> {r.location}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-1 font-semibold">
-                      {r.date} · {r.start} – {r.end}
-                    </div>
-                  </div>
-                  <span className="rounded-full px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                    Confirmed
-                  </span>
-                </div>
-              ))}
-            </div>
+                )}
+                
+                {/* Control de seguridad: solo mapeamos si ya cargaron las canchas */}
+                {!loading && courts && upcoming.map((r) => {
+                  const c = courts.find((court) => court.id === r.courtId);
 
-            {/* Temporizador de Expiración*/}
-            <div className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-3 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Timer className="h-5 w-5 text-orange-500" />
-                  <h2 className="font-bold text-slate-800">Hold expires soon</h2>
-                </div>
-                <p className="text-sm text-slate-400 mt-1">Complete payment to confirm your booking.</p>
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => history.push(`/client/reservations/${r.id}`)}
+                      className="flex items-center gap-4 rounded-xl border border-border bg-background p-3 hover:border-primary/40 transition cursor-pointer"
+                    >
+                      <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-secondary flex items-center justify-center">
+                        {c?.image ? (
+                          <img src={c.image} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <MapPin className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold truncate">{c?.name || "GameZone Court"}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
+                          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c?.location || "GameZone"}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {r.date} · {r.start} – {r.end}
+                        </div>
+                      </div>
+                      <StatusBadge status={r.status} />
+                    </div>
+                  );
+                })}
               </div>
-              
-              <div className="rounded-xl bg-orange-50 text-orange-600 p-4 text-center border border-orange-100">
-                <div className="text-xs uppercase tracking-wider font-bold opacity-80">Time remaining</div>
-                <div className="text-3xl font-black mt-1 tabular-nums">04:12</div>
-              </div>
+            </Card>
 
-              <button 
-                onClick={() => history.push("/client/my-reservations")}
-                className="w-full h-11 rounded-xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition shadow-md"
-              >
+            <Card className="p-6 rounded-2xl border-border">
+              <div className="flex items-center gap-2">
+                <Timer className="h-5 w-5 text-accent" />
+                <h2 className="font-display font-bold">Hold expires soon</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">Complete payment to confirm your booking.</p>
+              <div className="mt-4 rounded-xl bg-accent-soft text-accent p-4 text-center">
+                <div className="text-xs uppercase tracking-wider font-semibold">Time remaining</div>
+                <div className="text-3xl font-display font-bold mt-1 tabular-nums">04:12</div>
+              </div>
+              <Button className="w-full mt-4 rounded-xl" onClick={() => history.push("/client/my-reservations")}>
                 Complete payment
-              </button>
+              </Button>
+            </Card>
+          </div>
+
+          {/* Featured courts */}
+          <section>
+            <div className="flex items-end justify-between mb-4">
+              <h2 className="text-xl font-display font-bold">Recommended for you</h2>
+              <Button variant="ghost" size="sm" onClick={() => history.push("/client/courts")}>
+                Browse all <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
             </div>
-
-          </div>
-
-          {/* ====== BOTONES DE PRUEBA ====== */}
-          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            
-            {/* El botón de notificación de prueba exacto */}
-            <button
-              onClick={() =>
-                user &&
-                createNotification({
-                  userId: user.uid,
-                  title: "Reserva creada",
-                  message: "Tu reserva fue creada y está pendiente de confirmación.",
-                  type: "reservation_created",
-                })
-              }
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold shadow-md transition self-start"
-            >
-              Crear notificación de prueba
-            </button>
-
-            {/* El botón de cerrar sesión*/}
-            <button 
-              onClick={logout}
-              className="px-4 py-2 text-sm font-bold text-red-500 hover:text-red-600 hover:underline transition flex items-center gap-1 self-end"
-            >
-              Cerrar sesión
-            </button>
-          </div>
+            {loading ? (
+              <div className="text-center p-6 text-sm text-muted-foreground font-medium">Loading courts...</div>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {courts && courts.slice(0, 3).map((c) => (
+                  <CourtCard key={c.id} court={c} />
+                ))}
+              </div>
+            )}
+          </section>
 
         </div>
       </IonContent>

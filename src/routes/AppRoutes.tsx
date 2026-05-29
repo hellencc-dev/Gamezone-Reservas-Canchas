@@ -9,6 +9,7 @@ import ClientHome from "../pages/client/ClientHome";
 import AdminHome from "../pages/admin/AdminHome";
 import { useAuth } from "../hooks/useAuth";
 import Notifications from "../pages/shared/Notifications";
+import CourtsList from "../pages/client/CourtList";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -60,6 +61,13 @@ export default function AppRoutes() {
           exact
           path="/notifications"
           component={Notifications}
+          allowedRoles={["client", "admin"]}
+        />
+
+        <ProtectedRoute
+          exact
+          path="/client/courts"
+          component={CourtsList}
           allowedRoles={["client", "admin"]}
         />
 
