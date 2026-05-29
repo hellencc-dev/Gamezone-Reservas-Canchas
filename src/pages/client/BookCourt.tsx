@@ -9,11 +9,11 @@ import { Label } from "../../components/ui/label";
 import { StatusBadge } from "../../components/status-badge";
 import { useCourts } from "../../hooks/useCourts";
 import { useAuth } from "../../hooks/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 import { db } from "../../firebase/config";
 import { collection, addDoc } from "firebase/firestore";
 import { cn } from "../../lib/utils";
 
-// Interfaz para recibir las variables desde la página de disponibilidad
 interface NavigationState {
   date: string;
   slot: string;
@@ -32,20 +32,18 @@ export default function BookCourt() {
   const location = useLocation<NavigationState>();
   const { user } = useAuth();
   const { courts, loading } = useCourts();
+  const { createNotification } = useNotifications();
 
-  // Extraemos la información que viene de la pantalla anterior con fallbacks por si acaso
   const selectedDate = location.state?.date || new Date().toISOString().slice(0, 10);
   const selectedSlot = location.state?.slot || "06:00 PM";
 
   const court = courts?.find((c) => c.id === courtId);
 
-  // Estados del formulario
   const [duration, setDuration] = useState<60 | 90 | 120>(60);
   const [playersCount, setPlayersCount] = useState("6");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Cálculos matemáticos de precios idénticos a Lovable
   const baseRate = court?.price || 0;
   const courtTotal = (baseRate * duration) / 60;
   const serviceFee = 2.50;
@@ -56,7 +54,6 @@ export default function BookCourt() {
     setSubmitting(true);
 
     try {
-      // Calculamos la hora de fin sumando la duración en minutos
       const [time, modifier] = selectedSlot.split(" ");
       let [hours, minutes] = time.split(":").map(Number);
       if (modifier === "PM" && hours < 12) hours += 12;
@@ -71,7 +68,6 @@ export default function BookCourt() {
       const displayHours = endHours % 12 === 0 ? 12 : endHours % 12;
       const endTimeFormatted = `${displayHours}:${endMinutes} ${ampm}`;
 
-      // Armamos el documento final con toda la metadata requerida para Firestore
       const newReservation = {
         userId: user.uid,
         courtId: courtId,
@@ -86,9 +82,17 @@ export default function BookCourt() {
         createdAt: new Date()
       };
 
-      await addDoc(collection(db, "reservations"), newReservation);
+      // Guardamos la reserva y obtenemos su referencia
+      const docRef = await addDoc(collection(db, "reservations"), newReservation);
+            await createNotification({
+        userId: user.uid,
+        title: "Cancha Retenida ⏳",
+        message: `Tu espacio en ${court?.name || "la cancha"} está reservado. Tienes 5 minutos para completar el pago.`,
+        type: "payment_pending",
+        reservationId: docRef.id,
+        courtId: courtId
+      });
       
-      // Se elimina el aviso molesto y viaja directo a la vista de reserva pendiente
       history.push("/client/reservations/pending");
 
     } catch (error) {
@@ -117,7 +121,6 @@ export default function BookCourt() {
         <div className="w-full min-h-screen text-[#334155]">
           <main className="max-w-7xl mx-auto space-y-6 p-6 md:p-10">
             
-            {/* Botón de Atrás */}
             <button 
               onClick={() => history.push(`/client/courts/${court.id}/availability`)} 
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
@@ -133,7 +136,6 @@ export default function BookCourt() {
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 
-                {/* DURACIÓN DE PARTIDO */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
                   <h3 className="font-display font-bold">Match duration</h3>
                   <div className="mt-4 grid grid-cols-3 gap-3">
@@ -158,7 +160,6 @@ export default function BookCourt() {
                   </div>
                 </Card>
 
-                {/* DETALLES DEL JUGADOR AUTENTICADO */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
                   <h3 className="font-display font-bold">Player details</h3>
                   <div className="mt-4 grid sm:grid-cols-2 gap-4">
@@ -185,7 +186,6 @@ export default function BookCourt() {
                   </div>
                 </Card>
 
-                {/* PASARELA SIMULADA */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
                   <h3 className="font-display font-bold">Payment method</h3>
                   <div className="mt-4 space-y-2">
@@ -209,7 +209,6 @@ export default function BookCourt() {
                 </Card>
               </div>
 
-              {/* RESUMEN LATERAL */}
               <Card className="p-6 rounded-2xl border-border bg-card h-fit lg:sticky lg:top-24 shadow-sm">
                 <div className="flex gap-3 border-b border-border pb-4">
                   <div className="h-16 w-16 rounded-xl overflow-hidden bg-secondary shrink-0">
