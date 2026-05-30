@@ -159,7 +159,7 @@ export default function ReservationDetail() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 pt-3 text-xs text-muted-foreground font-medium">
-                      <CreditCard className="h-4 w-4 text-primary" /> Pago simulado aprobado por GameZone
+                      <CreditCard className="h-4 w-4 text-primary" /> Pago aprobado por GameZone
                     </div>
                   </div>
                 </Card>

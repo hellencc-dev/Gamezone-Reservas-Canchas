@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Clock,
   Flame,
+  LogOut,
   MapPin,
   Plus,
   Timer,
@@ -16,6 +17,7 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { CourtCard } from "../../components/CourtCard";
 import { StatusBadge } from "../../components/status-badge";
+import NotificationBell from "../../components/shared/NotificationBell";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useCourts } from "../../hooks/useCourts";
@@ -27,7 +29,7 @@ import { doc, updateDoc } from "firebase/firestore";
 const TOTAL_TIME = 5 * 60; 
 
 export default function ClientHome() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { courts, loading } = useCourts();
   const history = useHistory();
   const { reservations, loadingReservations } = useReservations();
@@ -107,12 +109,41 @@ export default function ClientHome() {
   const sports = [
     { id: "futbol", name: "Fútbol", courts: 5, icon: CalendarCheck, gradient: "from-emerald-500 to-teal-600" },
     { id: "tenis", name: "Tenis", courts: 3, icon: CalendarCheck, gradient: "from-amber-400 to-orange-500" },
-    { id: "baloncesto", name: "Basketball", courts: 2, icon: CalendarCheck, gradient: "from-blue-500 to-indigo-600" },
+    { id: "baloncesto", name: "Baloncesto", courts: 2, icon: CalendarCheck, gradient: "from-blue-500 to-indigo-600" },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    history.push("/login");
+  };
 
   return (
     <IonPage className="overflow-auto min-h-screen bg-[#f8fafc]">
       <div className="w-full text-[#334155] p-6 md:p-10 space-y-8 bg-[#f8fafc]">
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-extrabold text-white shadow-brand">
+              GZ
+            </div>
+            <div>
+              <div className="font-display text-lg font-bold text-foreground">GameZone</div>
+              <div className="text-xs font-medium text-muted-foreground">Hola, {user?.firstName || "cliente"}</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleLogout}
+              className="h-11 rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Cerrar sesión
+            </Button>
+          </div>
+        </header>
         
         {/* Hero greeting */}
         <div className="rounded-3xl gradient-brand p-8 md:p-10 text-primary-foreground shadow-brand relative overflow-hidden">
@@ -120,17 +151,17 @@ export default function ClientHome() {
           <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-accent/30 blur-3xl" />
           <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="text-sm opacity-80">Good evening, {user?.firstName || "cliente"} 👋</div>
-              <h1 className="mt-2 text-3xl md:text-4xl font-display font-bold">Ready for tonight's match?</h1>
+              <div className="text-sm opacity-80">Buenas tardes, {user?.firstName || "cliente"}</div>
+              <h1 className="mt-2 text-3xl md:text-4xl font-display font-bold">¿Listo para tu próximo partido?</h1>
               <p className="mt-2 text-primary-foreground/80 max-w-md">
                 Tienes {upcoming.length} reservas próximas y {courts ? courts.length : 0} canchas disponibles cerca.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="secondary" className="rounded-xl h-11" onClick={() => history.push("/client/courts", { selectedSport: "all" })}>
-                <Plus className="mr-1 h-4 w-4" /> Book a court
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="secondary" className="h-11 rounded-xl bg-white px-5 font-semibold text-blue-700 shadow-sm hover:bg-slate-50" onClick={() => history.push("/client/courts", { selectedSport: "all" })}>
+                <Plus className="mr-1 h-4 w-4" /> Reservar cancha
               </Button>
-              <Button variant="outline" className="rounded-xl h-11 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/reservations")}>
+              <Button variant="outline" className="h-11 rounded-xl border-white/30 bg-transparent px-5 font-semibold text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/reservations")}>
                 Mis reservas
               </Button>
             </div>
@@ -153,9 +184,9 @@ export default function ClientHome() {
         {/* Sports quick pick */}
         <section>
           <div className="flex items-end justify-between mb-4">
-            <h2 className="text-xl font-display font-bold">Choose your sport</h2>
+            <h2 className="text-xl font-display font-bold">Elige tu deporte</h2>
             <Button variant="ghost" size="sm" onClick={() => history.push("/client/courts", { selectedSport: "all" })}>
-              All sports <ArrowRight className="ml-1 h-3 w-3" />
+              Ver todo <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           </div>
           <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
@@ -169,7 +200,7 @@ export default function ClientHome() {
                   <div className="h-6 w-6 text-white flex items-center justify-center">⚽</div>
                 </div>
                 <div className="mt-3 font-medium text-sm">{s.name}</div>
-                <div className="text-[11px] text-muted-foreground">{s.courts} courts</div>
+                <div className="text-[11px] text-muted-foreground">{s.courts} canchas</div>
               </div>
             ))}
           </div>
@@ -181,7 +212,7 @@ export default function ClientHome() {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-display font-bold">Próximas reservas</h2>
               <Button size="sm" variant="ghost" onClick={() => history.push("/client/reservations")}>
-                View all
+                Ver todo
               </Button>
             </div>
             <div className="mt-4 space-y-3">
@@ -208,7 +239,7 @@ export default function ClientHome() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-semibold truncate text-foreground">{c?.name || "GameZone Court"}</div>
+                      <div className="font-semibold truncate text-foreground">{c?.name || "Cancha GameZone"}</div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                         <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{c?.location || "GameZone"}</span>
                       </div>
@@ -229,7 +260,7 @@ export default function ClientHome() {
               <Timer className={`h-5 w-5 ${timeLeft !== null && timeLeft < 60 ? "text-danger animate-pulse" : "text-accent"}`} />
               <h2 className="font-display font-bold text-foreground">Reserva temporal por expirar</h2>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Confirma el pago simulado para asegurar tu reserva.</p>
+            <p className="text-sm text-muted-foreground mt-1">Confirma el pago para asegurar tu reserva.</p>
             
             <div className={`mt-4 rounded-xl p-4 text-center transition-colors ${timeLeft !== null && timeLeft < 60 ? "bg-danger-soft text-danger" : "bg-accent-soft text-accent"}`}>
               <div className="text-xs uppercase tracking-wider font-semibold opacity-80">Tiempo restante</div>
@@ -254,9 +285,9 @@ export default function ClientHome() {
         {/* Featured courts */}
         <section>
           <div className="flex items-end justify-between mb-4">
-            <h2 className="text-xl font-display font-bold">Recommended for you</h2>
+            <h2 className="text-xl font-display font-bold">Recomendadas para ti</h2>
             <Button variant="ghost" size="sm" onClick={() => history.push("/client/courts", { selectedSport: "all" })}>
-              Browse all <ArrowRight className="ml-1 h-3 w-3" />
+              Ver todo <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           </div>
           {loading ? (

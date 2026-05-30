@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { IonPage, IonContent } from "@ionic/react";
-import { AlertCircle, CheckCircle2, Clock, MapPin, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Clock, MapPin, X } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Progress } from "../../components/ui/progress";
@@ -104,7 +104,7 @@ export default function PendingReservation() {
         courtId: latestHold.courtId
       });
 
-      alert("Pago simulado confirmado. Tu reserva está confirmada.");
+      alert("Pago confirmado. Tu reserva quedó confirmada.");
       history.push("/client/reservations");
     } catch (error) {
       console.error("Error al confirmar reserva:", error);
@@ -173,7 +173,10 @@ export default function PendingReservation() {
           <AlertCircle className="h-12 w-12 text-muted-foreground" />
           <h2 className="text-xl font-bold">No hay reservas temporales activas</h2>
           <p className="text-sm text-muted-foreground max-w-xs">No tienes canchas pendientes de pago.</p>
-          <Button onClick={() => history.push("/client/courts")}>Ver canchas</Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button className="rounded-xl" onClick={() => history.push("/client/courts")}>Ver canchas</Button>
+            <Button variant="outline" className="rounded-xl" onClick={() => history.push("/client")}>Volver al inicio</Button>
+          </div>
         </div>
       </IonPage>
     );
@@ -184,6 +187,14 @@ export default function PendingReservation() {
       <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
         <div className="w-full min-h-screen text-[#334155] p-6 md:p-10">
           <div className="max-w-3xl mx-auto space-y-6">
+            <button
+              type="button"
+              onClick={() => history.goBack()}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-600"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </button>
 
             <div className="text-center">
               <div className="inline-flex items-center gap-2 rounded-full bg-warning-soft text-warning px-3 py-1 text-xs font-semibold">
@@ -191,7 +202,7 @@ export default function PendingReservation() {
               </div>
               <h1 className="mt-4 text-3xl md:text-4xl font-display font-bold text-foreground">Tu cancha está retenida</h1>
               <p className="mt-2 text-muted-foreground max-w-md mx-auto text-sm">
-                Confirma el pago simulado antes de que termine el temporizador o la reserva expirará.
+                Tu reserva se mantendrá disponible durante 5 minutos mientras confirmas el pago. Si no completas la confirmación en ese tiempo, la cancha volverá a estar disponible.
               </p>
             </div>
 
@@ -217,7 +228,7 @@ export default function PendingReservation() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-display text-lg font-bold text-foreground truncate">{court?.name || "GameZone Court"}</div>
+                  <div className="font-display text-lg font-bold text-foreground truncate">{court?.name || "Cancha GameZone"}</div>
                   <div className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                     <MapPin className="h-3.5 w-3.5" /> {court?.location || "Main Complex"}
                   </div>
@@ -256,8 +267,8 @@ export default function PendingReservation() {
             <div className="flex items-start gap-3 rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
               <Clock className="h-4 w-4 text-accent shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed">
-                Una reserva temporal retiene la cancha mientras confirmas el pago simulado.
-                Después de 5 minutos, la reserva expira automáticamente.
+                Tu reserva se mantendrá disponible durante 5 minutos mientras confirmas el pago.
+                Si no completas la confirmación en ese tiempo, la cancha volverá a estar disponible.
               </p>
             </div>
 

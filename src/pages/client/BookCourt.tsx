@@ -22,7 +22,7 @@ const sportIconMap: Record<string, { name: string; icon: any }> = {
   futbol: { name: "Fútbol", icon: Trophy },
   tenis: { name: "Tenis", icon: Target },
   baloncesto: { name: "Baloncesto", icon: Calendar },
-  basketball: { name: "Basketball", icon: Calendar },
+  basketball: { name: "Baloncesto", icon: Calendar },
 };
 
 export default function BookCourt() {
@@ -216,7 +216,7 @@ export default function BookCourt() {
                     ))}
                   </div>
                   <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-success" /> Pago simulado protegido por GameZone
+                    <ShieldCheck className="h-4 w-4 text-success" /> Pago protegido por GameZone
                   </div>
                 </Card>
               </div>
@@ -227,7 +227,7 @@ export default function BookCourt() {
                     {court.image ? (
                       <img src={court.image} alt="" className="h-full w-full object-cover" onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center bg-muted text-xs">No image</div>
+                      <div className="h-full w-full flex items-center justify-center bg-muted text-xs">Sin imagen</div>
                     )}
                   </div>
                   <div className="min-w-0">
@@ -240,7 +240,7 @@ export default function BookCourt() {
                 <div className="mt-5 space-y-2 text-sm">
                   <Row label="Fecha" value={selectedDate} />
                   <Row label="Hora" value={`${selectedSlot} (${duration}m)`} />
-                  <Row label="Tarifa de cancha" value={`$${baseRate} / hr`} />
+                  <Row label="Tarifa de cancha" value={`$${baseRate} / hora`} />
                   <Row label="Servicio" value={`$${serviceFee.toFixed(2)}`} />
                 </div>
                 

@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { IonPage, IonContent } from "@ionic/react";
+import { useState, type ComponentType } from "react";
+import { useHistory } from "react-router-dom";
+import { IonContent, IonPage } from "@ionic/react";
 import {
   AlertCircle,
+  ArrowLeft,
   Bell,
   BellOff,
   CheckCheck,
@@ -9,89 +11,134 @@ import {
   Sparkles,
   XCircle,
 } from "lucide-react";
+
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { useNotifications, NotificationType } from "../../hooks/useNotifications";
 import { cn } from "../../lib/utils";
 
-// Mapeo inteligente: Vincula los tipos de Firebase de tu compañera con los estilos visuales de Lovable
-const typeStyle: Record<NotificationType, { icon: React.ComponentType<{ className?: string }>; cls: string }> = {
-  reservation_created: { icon: CheckCircle2, cls: "bg-success-soft text-success" },
-  reservation_confirmed: { icon: CheckCircle2, cls: "bg-success-soft text-success" },
-  payment_pending: { icon: AlertCircle, cls: "bg-warning-soft text-warning" },
-  reservation_cancelled: { icon: XCircle, cls: "bg-danger-soft text-danger" },
-  reservation_expired: { icon: XCircle, cls: "bg-danger-soft text-danger" },
-  availability_updated: { icon: Sparkles, cls: "bg-primary-soft text-primary" },
+const typeStyle: Record<
+  NotificationType,
+  { icon: ComponentType<{ className?: string }>; cls: string; label: string }
+> = {
+  reservation_created: {
+    icon: CheckCircle2,
+    cls: "bg-success-soft text-success",
+    label: "Reserva creada",
+  },
+  reservation_confirmed: {
+    icon: CheckCircle2,
+    cls: "bg-success-soft text-success",
+    label: "Reserva confirmada",
+  },
+  payment_pending: {
+    icon: AlertCircle,
+    cls: "bg-warning-soft text-warning",
+    label: "Pago pendiente",
+  },
+  reservation_cancelled: {
+    icon: XCircle,
+    cls: "bg-danger-soft text-danger",
+    label: "Reserva cancelada",
+  },
+  reservation_expired: {
+    icon: XCircle,
+    cls: "bg-danger-soft text-danger",
+    label: "Reserva expirada",
+  },
+  availability_updated: {
+    icon: Sparkles,
+    cls: "bg-primary-soft text-primary",
+    label: "Disponibilidad",
+  },
 };
 
 export default function NotificationsPage() {
-  // Consumimos directamente la lógica real del hook de tu compañera
+  const history = useHistory();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [tab, setTab] = useState<"all" | "unread">("all");
 
-  // Filtrado reactivo basado en la pestaña seleccionada
-  const visibleNotifications = notifications.filter((n) => (tab === "unread" ? !n.read : true));
+  const visibleNotifications = notifications.filter((notification) =>
+    tab === "unread" ? !notification.read : true
+  );
 
-  // Formateador estético para la estampa de tiempo ISO de Firebase
   const formatNotificationTime = (isoString: string) => {
     try {
-      const date = new Date(isoString);
-      return date.toLocaleDateString("en-US", {
+      return new Date(isoString).toLocaleDateString("es-CO", {
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
-      return "Just now";
+    } catch {
+      return "Ahora";
     }
   };
 
   return (
     <IonPage className="bg-transparent border-none">
-      <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
-        <div className="w-full min-h-screen text-[#334155] p-6 md:p-10">
-          <div className="max-w-3xl mx-auto space-y-6">
-            
-            {/* Encabezado Principal */}
-            <div className="flex items-end justify-between gap-4 flex-wrap">
-              <div>
-                <h1 className="text-3xl font-display font-bold text-foreground">Notifications</h1>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  {loading 
-                    ? "Checking for new updates..." 
-                    : unreadCount > 0 
-                    ? `You have ${unreadCount} unread notifications.` 
-                    : "You're all caught up."
-                  }
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="rounded-xl font-medium cursor-pointer"
-                onClick={markAllAsRead}
-                disabled={unreadCount === 0 || loading}
-              >
-                <CheckCheck className="mr-1.5 h-4 w-4" /> Mark all read
-              </Button>
-            </div>
+      <IonContent fullscreen scrollEvents style={{ "--background": "#f8fafc" }}>
+        <div className="min-h-screen w-full p-5 text-[#334155] md:p-10">
+          <div className="mx-auto max-w-4xl space-y-6">
+            <button
+              type="button"
+              onClick={() => history.goBack()}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-600"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </button>
 
-            {/* Pestañas de Filtrado (All / Unread) */}
+            <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-500 to-orange-400 p-6 text-white shadow-brand md:p-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white/85">
+                    <Bell className="h-3.5 w-3.5" />
+                    Centro de notificaciones
+                  </div>
+                  <h1 className="mt-4 text-3xl font-display font-bold md:text-4xl">
+                    Notificaciones
+                  </h1>
+                  <p className="mt-2 max-w-xl text-sm font-medium text-white/85">
+                    {loading
+                      ? "Buscando novedades de tus reservas..."
+                      : unreadCount > 0
+                        ? `Tienes ${unreadCount} notificación${unreadCount === 1 ? "" : "es"} sin leer.`
+                        : "No tienes notificaciones pendientes por leer."}
+                  </p>
+                </div>
+
+                <Button
+                  variant="secondary"
+                  className="h-11 rounded-xl bg-white text-blue-700 shadow-sm hover:bg-slate-50"
+                  onClick={markAllAsRead}
+                  disabled={unreadCount === 0 || loading}
+                >
+                  <CheckCheck className="mr-1.5 h-4 w-4" />
+                  Marcar todo como leído
+                </Button>
+              </div>
+            </section>
+
             <div className="flex gap-2">
-              {(["all", "unread"] as const).map((t) => (
+              {[
+                ["all", "Todas"],
+                ["unread", "Sin leer"],
+              ].map(([value, label]) => (
                 <button
-                  key={t}
+                  key={value}
                   type="button"
-                  onClick={() => setTab(t)}
+                  onClick={() => setTab(value as "all" | "unread")}
                   className={cn(
-                    "rounded-full px-4 py-2 text-sm font-medium border transition capitalize cursor-pointer flex items-center",
-                    tab === t
-                      ? "bg-primary text-primary-foreground border-primary shadow-brand"
-                      : "bg-card text-foreground border-border hover:border-primary/40",
+                    "inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition",
+                    tab === value
+                      ? "border-primary bg-primary text-primary-foreground shadow-brand"
+                      : "border-border bg-card text-foreground hover:border-primary/40"
                   )}
                 >
-                  {t} {t === "unread" && unreadCount > 0 && (
-                    <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold px-1.5">
+                  {label}
+                  {value === "unread" && unreadCount > 0 && (
+                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-bold text-accent-foreground">
                       {unreadCount}
                     </span>
                   )}
@@ -99,50 +146,92 @@ export default function NotificationsPage() {
               ))}
             </div>
 
-            {/* Renderizado Condicional del Listado */}
             {loading ? (
-              <div className="text-center p-16 text-muted-foreground font-medium">
-                Loading secure feed...
+              <div className="p-16 text-center font-medium text-muted-foreground">
+                Cargando notificaciones...
               </div>
             ) : visibleNotifications.length === 0 ? (
-              <Card className="p-16 rounded-2xl border-dashed border-border text-center bg-card shadow-sm">
-                <div className="mx-auto h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center">
+              <Card className="rounded-2xl border-dashed border-border bg-card p-16 text-center shadow-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
                   <BellOff className="h-7 w-7 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 font-display text-lg font-bold text-foreground">No notifications available</h3>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto leading-relaxed">
-                  We'll let you know when there's something new regarding your matches or local courts.
+                <h3 className="mt-4 font-display text-lg font-bold text-foreground">
+                  No hay notificaciones
+                </h3>
+                <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                  Aquí verás el historial de reservas, pagos, cancelaciones y cambios de disponibilidad.
                 </p>
               </Card>
             ) : (
-              <div className="space-y-2">
-                {visibleNotifications.map((n) => {
-                  // Resolvemos el estilo de forma segura usando el mapa dinámico
-                  const style = typeStyle[n.type] || typeStyle["availability_updated"];
+              <div className="space-y-3">
+                {visibleNotifications.map((notification) => {
+                  const style = typeStyle[notification.type] || typeStyle.availability_updated;
                   const StyleIcon = style.icon;
 
                   return (
                     <Card
-                      key={n.id}
-                      onClick={() => !n.read && markAsRead(n.id)}
+                      key={notification.id}
+                      onClick={() => !notification.read && markAsRead(notification.id)}
                       className={cn(
-                        "p-4 rounded-2xl border-border bg-card shadow-sm transition flex items-start gap-3",
-                        !n.read ? "bg-primary-soft/30 border-primary/20 ring-1 ring-primary/5 cursor-pointer" : "opacity-85"
+                        "flex items-start gap-3 rounded-2xl border-border bg-card p-4 shadow-sm transition",
+                        !notification.read
+                          ? "cursor-pointer border-primary/20 bg-primary-soft/30 ring-1 ring-primary/5"
+                          : "opacity-85"
                       )}
                     >
-                      <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", style.cls)}>
+                      <div
+                        className={cn(
+                          "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-sm",
+                          style.cls
+                        )}
+                      >
                         <StyleIcon className="h-5 w-5" />
                       </div>
+
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className={cn("font-semibold text-sm md:text-base text-foreground truncate", !n.read && "font-bold")}>
-                            {n.title}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3
+                            className={cn(
+                              "truncate text-sm font-semibold text-foreground md:text-base",
+                              !notification.read && "font-bold"
+                            )}
+                          >
+                            {notification.title}
                           </h3>
-                          {!n.read && <span className="h-2 w-2 rounded-full bg-accent shrink-0 animate-pulse" />}
+                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                            {style.label}
+                          </span>
+                          {!notification.read && (
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{n.message}</p>
-                        <div className="text-xs text-muted-foreground mt-1.5 font-medium">
-                          {formatNotificationTime(n.createdAt)}
+
+                        <p className="mt-0.5 text-sm leading-relaxed text-muted-foreground">
+                          {notification.message}
+                        </p>
+
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
+                          <span>{formatNotificationTime(notification.createdAt)}</span>
+                          <span
+                            className={cn(
+                              "font-bold",
+                              notification.read ? "text-slate-400" : "text-blue-600"
+                            )}
+                          >
+                            {notification.read ? "Leída" : "Sin leer"}
+                          </span>
+                          {!notification.read && (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                markAsRead(notification.id);
+                              }}
+                              className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 font-semibold text-blue-700 transition hover:bg-blue-100"
+                            >
+                              Marcar como leída
+                            </button>
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -150,19 +239,6 @@ export default function NotificationsPage() {
                 })}
               </div>
             )}
-
-            {/* Preferencias Inferiores Estáticas */}
-            <Card className="p-6 rounded-2xl border-border bg-card shadow-sm flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                <Bell className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <div className="font-semibold text-foreground">Manage notification preferences</div>
-                <div className="text-sm text-muted-foreground mt-0.5">Choose how you receive real-time alerts and game reminders.</div>
-              </div>
-              <Button variant="outline" className="rounded-xl font-medium cursor-pointer w-full sm:w-auto">Settings</Button>
-            </Card>
-
           </div>
         </div>
       </IonContent>

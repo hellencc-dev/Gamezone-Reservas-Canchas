@@ -1,9 +1,8 @@
 import type { CSSProperties } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import { IonContent, IonPage } from "@ionic/react";
 import {
   ArrowUpRight,
-  Bell,
   CalendarDays,
   CheckCircle2,
   CircleX,
@@ -11,6 +10,7 @@ import {
   Clock3,
   DollarSign,
   LineChart,
+  LogOut,
   MapPin,
   PieChart,
   Search,
@@ -28,6 +28,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
 import { useAuth } from "../../hooks/useAuth";
+import NotificationBell from "../../components/shared/NotificationBell";
 
 const adminTheme = {
   "--background": "#f8fafc",
@@ -236,7 +237,8 @@ function DashboardView() {
 
 export default function AdminHome() {
   const { hash } = useLocation();
-  const { user } = useAuth();
+  const history = useHistory();
+  const { user, logout } = useAuth();
   const userInitials =
     [user?.firstName, user?.lastName]
       .filter(Boolean)
@@ -254,6 +256,11 @@ export default function AdminHome() {
           : hash === "#availability"
             ? "availability"
           : "home";
+
+  const handleLogout = async () => {
+    await logout();
+    history.push("/login");
+  };
 
   return (
     <IonPage>
@@ -293,8 +300,14 @@ export default function AdminHome() {
                   <Input placeholder="Buscar reservas, canchas o usuarios..." className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-12 text-slate-700 shadow-sm placeholder:text-slate-500 focus-visible:ring-blue-500" />
                 </div>
                 <div className="ml-auto flex items-center gap-3">
-                  <Button variant="ghost" size="icon" aria-label="Notificaciones" className="h-10 w-10 rounded-full text-slate-700 hover:bg-slate-100">
-                    <Bell className="h-5 w-5" />
+                  <NotificationBell />
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="hidden h-10 rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar sesión
                   </Button>
                   <div className="h-11 w-11 rounded-full flex items-center justify-center text-base font-semibold text-white shadow-sm" style={{ background: "var(--brand-gradient)" }}>
                     {userInitials}
