@@ -23,6 +23,7 @@ import {
 import AdminDashboard from "./AdminDashboard";
 import AdminCalendar from "./AdminCalendar";
 import ManageCourts from "./ManageCourts";
+import ManageAvailability from "./ManageAvailability";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
@@ -59,7 +60,7 @@ const quickAccessItems = [
   { title: "Reservations", description: "Review and manage all court bookings.", icon: ClipboardList, color: "text-blue-600", bg: "bg-blue-50", url: "/client/reservations" },
   { title: "Calendar", description: "See today's schedule at a glance.", icon: CalendarDays, color: "text-orange-500", bg: "bg-orange-50", url: "/admin#calendar" },
   { title: "Courts", description: "Manage venues and playing surfaces.", icon: MapPin, color: "text-blue-600", bg: "bg-blue-50", url: "/admin#courts" },
-  { title: "Availability", description: "Open and block time slots.", icon: CheckCircle2, color: "text-orange-500", bg: "bg-orange-50", url: "/admin#calendar" },
+  { title: "Availability", description: "Open and block time slots.", icon: CheckCircle2, color: "text-orange-500", bg: "bg-orange-50", url: "/admin#availability" },
 ];
 
 const homeStats = [
@@ -241,6 +242,8 @@ export default function AdminHome() {
         ? "calendar"
         : hash === "#courts"
           ? "courts"
+          : hash === "#availability"
+            ? "availability"
           : "home";
 
   return (
@@ -286,6 +289,7 @@ export default function AdminHome() {
                 {currentView === "dashboard" && <DashboardView />}
                 {currentView === "calendar" && <AdminCalendar />}
                 {currentView === "courts" && <ManageCourts />}
+                {currentView === "availability" && <ManageAvailability />}
                 {currentView === "home" && <HomeView />}
               </main>
             </div>

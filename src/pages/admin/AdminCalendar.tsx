@@ -101,6 +101,7 @@ export default function AdminCalendar() {
           <Button
             variant={view === "table" ? "default" : "outline"}
             size="sm"
+            className="rounded-xl shadow-sm"
             onClick={() => setView("table")}
           >
             <List className="mr-1 h-4 w-4" />
@@ -109,6 +110,7 @@ export default function AdminCalendar() {
           <Button
             variant={view === "cards" ? "default" : "outline"}
             size="sm"
+            className="rounded-xl shadow-sm"
             onClick={() => setView("cards")}
           >
             <LayoutGrid className="mr-1 h-4 w-4" />
@@ -125,15 +127,20 @@ export default function AdminCalendar() {
               placeholder="Buscar por reserva, cancha o usuario..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              className="pl-9"
+              className="rounded-xl pl-9"
             />
           </div>
           <div className="md:col-span-3">
-            <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            <Input
+              type="date"
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              className="rounded-xl"
+            />
           </div>
           <div className="md:col-span-3">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -147,7 +154,7 @@ export default function AdminCalendar() {
             </Select>
           </div>
           <div className="md:col-span-1">
-            <Button variant="ghost" className="w-full" onClick={resetFilters}>
+            <Button variant="ghost" className="w-full rounded-xl" onClick={resetFilters}>
               Reset
             </Button>
           </div>
