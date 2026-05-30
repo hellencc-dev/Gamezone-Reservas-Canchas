@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 
 import { db } from "../firebase/config";
@@ -9,6 +9,9 @@ export interface AdminReservation {
   id: string;
   courtId: string;
   userId: string;
+  courtName: string;
+  userDisplayName: string;
+  userEmail: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -20,9 +23,39 @@ export interface AdminReservation {
   createdAt?: unknown;
 }
 
+type ReservationDocument = Omit<AdminReservation, "courtName" | "userDisplayName" | "userEmail">;
+
+interface CourtInfo {
+  name: string;
+}
+
+interface UserInfo {
+  displayName: string;
+  email: string;
+}
+
+function textValue(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function buildUserDisplayName(data: Record<string, unknown>) {
+  const displayName = textValue(data.displayName);
+  const name = textValue(data.name);
+  const firstName = textValue(data.firstName);
+  const lastName = textValue(data.lastName);
+  const email = textValue(data.email);
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
+
+  return displayName || name || fullName || email || "Usuario sin nombre";
+}
+
 export function useAdminReservations() {
-  const [reservations, setReservations] = useState<AdminReservation[]>([]);
-  const [loadingReservations, setLoadingReservations] = useState(true);
+  const [reservationDocs, setReservationDocs] = useState<ReservationDocument[]>([]);
+  const [courtsById, setCourtsById] = useState<Record<string, CourtInfo>>({});
+  const [usersById, setUsersById] = useState<Record<string, UserInfo>>({});
+  const [loadingReservationsData, setLoadingReservationsData] = useState(true);
+  const [loadingCourts, setLoadingCourts] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
     const reservationsQuery = query(collection(db, "reservations"), orderBy("date", "asc"));
@@ -31,7 +64,7 @@ export function useAdminReservations() {
       reservationsQuery,
       (snapshot) => {
         const docs = snapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }) as AdminReservation)
+          .map((doc) => ({ id: doc.id, ...doc.data() }) as ReservationDocument)
           .sort((a, b) => {
             const dateOrder = a.date.localeCompare(b.date);
 
@@ -42,17 +75,84 @@ export function useAdminReservations() {
             return a.startTime.localeCompare(b.startTime);
           });
 
-        setReservations(docs);
-        setLoadingReservations(false);
+        setReservationDocs(docs);
+        setLoadingReservationsData(false);
       },
       (error) => {
         console.error("Error al traer reservas administrativas:", error);
-        setLoadingReservations(false);
+        setLoadingReservationsData(false);
       },
     );
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "courts"),
+      (snapshot) => {
+        const courts = snapshot.docs.reduce<Record<string, CourtInfo>>((acc, doc) => {
+          const data = doc.data();
+          acc[doc.id] = {
+            name: textValue(data.name) || "Cancha sin nombre",
+          };
+
+          return acc;
+        }, {});
+
+        setCourtsById(courts);
+        setLoadingCourts(false);
+      },
+      (error) => {
+        console.error("Error al traer canchas:", error);
+        setLoadingCourts(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "users"),
+      (snapshot) => {
+        const users = snapshot.docs.reduce<Record<string, UserInfo>>((acc, doc) => {
+          const data = doc.data();
+          acc[doc.id] = {
+            displayName: buildUserDisplayName(data),
+            email: textValue(data.email),
+          };
+
+          return acc;
+        }, {});
+
+        setUsersById(users);
+        setLoadingUsers(false);
+      },
+      (error) => {
+        console.error("Error al traer usuarios:", error);
+        setLoadingUsers(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  const reservations = useMemo<AdminReservation[]>(() => {
+    return reservationDocs.map((reservation) => {
+      const court = courtsById[reservation.courtId];
+      const user = usersById[reservation.userId];
+
+      return {
+        ...reservation,
+        courtName: court?.name || "Cancha sin nombre",
+        userDisplayName: user?.displayName || "Usuario sin nombre",
+        userEmail: user?.email || "",
+      };
+    });
+  }, [courtsById, reservationDocs, usersById]);
+
+  const loadingReservations = loadingReservationsData || loadingCourts || loadingUsers;
 
   return { reservations, loadingReservations };
 }

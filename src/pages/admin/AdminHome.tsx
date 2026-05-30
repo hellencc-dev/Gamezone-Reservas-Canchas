@@ -22,6 +22,7 @@ import {
 
 import AdminDashboard from "./AdminDashboard";
 import AdminCalendar from "./AdminCalendar";
+import ManageCourts from "./ManageCourts";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
@@ -57,7 +58,7 @@ const adminTheme = {
 const quickAccessItems = [
   { title: "Reservations", description: "Review and manage all court bookings.", icon: ClipboardList, color: "text-blue-600", bg: "bg-blue-50", url: "/client/reservations" },
   { title: "Calendar", description: "See today's schedule at a glance.", icon: CalendarDays, color: "text-orange-500", bg: "bg-orange-50", url: "/admin#calendar" },
-  { title: "Courts", description: "Manage venues and playing surfaces.", icon: MapPin, color: "text-blue-600", bg: "bg-blue-50", url: "/client/courts" },
+  { title: "Courts", description: "Manage venues and playing surfaces.", icon: MapPin, color: "text-blue-600", bg: "bg-blue-50", url: "/admin#courts" },
   { title: "Availability", description: "Open and block time slots.", icon: CheckCircle2, color: "text-orange-500", bg: "bg-orange-50", url: "/admin#calendar" },
 ];
 
@@ -234,7 +235,13 @@ function DashboardView() {
 export default function AdminHome() {
   const { hash } = useLocation();
   const currentView =
-    hash === "#dashboard" ? "dashboard" : hash === "#calendar" ? "calendar" : "home";
+    hash === "#dashboard"
+      ? "dashboard"
+      : hash === "#calendar"
+        ? "calendar"
+        : hash === "#courts"
+          ? "courts"
+          : "home";
 
   return (
     <IonPage>
@@ -278,6 +285,7 @@ export default function AdminHome() {
               <main className="flex-1 bg-slate-50 p-5 md:p-10">
                 {currentView === "dashboard" && <DashboardView />}
                 {currentView === "calendar" && <AdminCalendar />}
+                {currentView === "courts" && <ManageCourts />}
                 {currentView === "home" && <HomeView />}
               </main>
             </div>

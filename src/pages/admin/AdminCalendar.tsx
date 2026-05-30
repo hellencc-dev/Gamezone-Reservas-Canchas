@@ -53,7 +53,10 @@ export default function AdminCalendar() {
         !query ||
         reservation.id.toLowerCase().includes(query) ||
         reservation.courtId.toLowerCase().includes(query) ||
-        reservation.userId.toLowerCase().includes(query);
+        reservation.courtName.toLowerCase().includes(query) ||
+        reservation.userId.toLowerCase().includes(query) ||
+        reservation.userDisplayName.toLowerCase().includes(query) ||
+        reservation.userEmail.toLowerCase().includes(query);
       const matchesDate = !date || reservation.date === date;
       const matchesStatus = status === "all" || reservation.status === status;
 
@@ -197,10 +200,16 @@ export default function AdminCalendar() {
                       {groupedReservations[groupDate].map((reservation) => (
                         <TableRow key={reservation.id}>
                           <TableCell>
-                            <div className="font-medium">{reservation.courtId}</div>
-                            <div className="text-xs text-muted-foreground">{reservation.id}</div>
+                            <div className="font-medium">{reservation.courtName}</div>
                           </TableCell>
-                          <TableCell>{reservation.userId}</TableCell>
+                          <TableCell>
+                            <div className="font-medium">{reservation.userDisplayName}</div>
+                            {reservation.userEmail && (
+                              <div className="text-xs text-muted-foreground">
+                                {reservation.userEmail}
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell>
                             {reservation.startTime} - {reservation.endTime}
                           </TableCell>

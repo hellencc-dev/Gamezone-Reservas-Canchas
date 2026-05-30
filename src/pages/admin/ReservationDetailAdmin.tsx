@@ -90,7 +90,7 @@ export default function ReservationDetailAdmin({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between gap-4 pr-6">
-            <DialogTitle className="text-xl">Reserva {reservation.id}</DialogTitle>
+            <DialogTitle className="text-xl">Detalle de reserva</DialogTitle>
             <StatusBadge status={reservation.status} />
           </div>
         </DialogHeader>
@@ -112,8 +112,11 @@ export default function ReservationDetailAdmin({
           <Separator />
 
           <Section title="Usuarios y cancha">
-            <Row icon={MapPin} label="Court ID" value={reservation.courtId} />
-            <Row icon={User} label="User ID" value={reservation.userId} />
+            <Row icon={MapPin} label="Cancha" value={reservation.courtName} />
+            <Row icon={User} label="Usuario" value={reservation.userDisplayName} />
+            {reservation.userEmail && (
+              <Row icon={User} label="Email" value={reservation.userEmail} />
+            )}
           </Section>
 
           <Separator />

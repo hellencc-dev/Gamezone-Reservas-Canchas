@@ -28,7 +28,7 @@ const mainItems = [
   { title: "Dashboard", url: "/admin#dashboard", icon: LayoutDashboard },
   { title: "Reservations", url: "/client/reservations", icon: ClipboardList },
   { title: "Calendar", url: "/admin#calendar", icon: CalendarDays },
-  { title: "Courts", url: "/client/courts", icon: MapPin },
+  { title: "Courts", url: "/admin#courts", icon: MapPin },
 ];
 
 const manageItems = [
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
-                    className="h-10 rounded-lg px-3 text-base text-white hover:bg-[#2b3a52] hover:text-white data-[active=true]:bg-[#2b3a52] data-[active=true]:text-white"
+                    className="h-10 rounded-lg border border-transparent px-3 text-base text-white/85 hover:bg-[#2b3a52] hover:text-white data-[active=true]:border-white/15 data-[active=true]:bg-[#2b3a52] data-[active=true]:font-bold data-[active=true]:text-white data-[active=true]:shadow-sm"
                   >
                     <Link to={item.url} className="text-white no-underline">
                       <item.icon className="h-5 w-5" />
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
                     asChild
                     isActive={isActive(item.url)}
                     tooltip={item.title}
-                    className="h-10 rounded-lg px-3 text-base text-white hover:bg-[#2b3a52] hover:text-white data-[active=true]:bg-[#2b3a52] data-[active=true]:text-white"
+                    className="h-10 rounded-lg border border-transparent px-3 text-base text-white/85 hover:bg-[#2b3a52] hover:text-white data-[active=true]:border-white/15 data-[active=true]:bg-[#2b3a52] data-[active=true]:font-bold data-[active=true]:text-white data-[active=true]:shadow-sm"
                   >
                     <Link to={item.url} className="text-white no-underline">
                       <item.icon className="h-5 w-5" />
