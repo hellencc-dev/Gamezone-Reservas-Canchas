@@ -9,13 +9,14 @@ import { useReservations } from "../../hooks/useReservations";
 import { useCourts } from "../../hooks/useCourts";
 import { cn } from "../../lib/utils";
 
-type FilterTab = "all" | "confirmed" | "temporary" | "cancelled" | "expired";
+type FilterTab = "all" | "confirmada" | "temporal" | "cancelada" | "expirada";
 
 const tabs: { id: FilterTab; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "confirmed", label: "Confirmed" },
-  { id: "temporary", label: "Temporary" },
-  { id: "cancelled", label: "Cancelled" },
+  { id: "all", label: "Todas" },
+  { id: "confirmada", label: "Confirmadas" },
+  { id: "temporal", label: "Temporales" },
+  { id: "cancelada", label: "Canceladas" },
+  { id: "expirada", label: "Expiradas" },
 ];
 
 export default function ClientReservations() {
@@ -35,12 +36,18 @@ export default function ClientReservations() {
     <IonPage className="bg-transparent border-none">
       <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
         <div className="w-full min-h-screen text-[#334155] p-6 md:p-10 space-y-6">
+          <button
+            onClick={() => history.push("/client")}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
+          >
+            Volver al inicio
+          </button>
           
           {/* Encabezado Principal */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-display font-bold text-foreground">My reservations</h1>
-              <p className="text-muted-foreground mt-1">Manage upcoming and past bookings.</p>
+              <h1 className="text-3xl font-display font-bold text-foreground">Mis reservas</h1>
+              <p className="text-muted-foreground mt-1">Gestiona tus reservas próximas y anteriores.</p>
             </div>
             <div className="flex gap-2">
               <div className="inline-flex rounded-xl border border-border bg-card p-1 shadow-sm">
@@ -51,7 +58,7 @@ export default function ClientReservations() {
                     view === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <LayoutGrid className="h-4 w-4" /> List
+                  <LayoutGrid className="h-4 w-4" /> Lista
                 </button>
                 <button
                   onClick={() => setView("calendar")}
@@ -60,11 +67,11 @@ export default function ClientReservations() {
                     view === "calendar" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <CalendarIcon className="h-4 w-4" /> Calendar
+                  <CalendarIcon className="h-4 w-4" /> Calendario
                 </button>
               </div>
               <Button onClick={() => history.push("/client/courts")} className="rounded-xl h-10 shadow-brand font-medium cursor-pointer">
-                <Plus className="mr-1 h-4 w-4" /> New booking
+                <Plus className="mr-1 h-4 w-4" /> Nueva reserva
               </Button>
             </div>
           </div>
@@ -89,7 +96,7 @@ export default function ClientReservations() {
 
           {/* Renderizado de Vistas */}
           {loading ? (
-            <div className="text-center p-16 text-muted-foreground font-medium">Loading reservations...</div>
+            <div className="text-center p-16 text-muted-foreground font-medium">Cargando reservas...</div>
           ) : view === "list" ? (
             filtered.length === 0 ? (
               <EmptyState onBrowse={() => history.push("/client/courts")} />
@@ -154,7 +161,7 @@ function CalendarView({ reservations }: { reservations: any[] }) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-display font-bold text-lg text-foreground">May 2026</h3>
         <div className="text-xs text-muted-foreground font-medium">
-          {reservations.filter(r => r.status === "confirmed").length} confirmed bookings
+          {reservations.filter(r => r.status === "confirmada").length} reservas confirmadas
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground font-semibold text-center border-b border-border pb-2">
@@ -170,7 +177,7 @@ function CalendarView({ reservations }: { reservations: any[] }) {
           const cellIsoDate = `${year}-${month}-${day}`;
           
           const dayReservation = reservations.find(
-            (x) => x.date === cellIsoDate && x.status === "confirmed"
+            (x) => x.date === cellIsoDate && x.status === "confirmada"
           );
           
           const out = d.getMonth() !== 4;
@@ -207,12 +214,12 @@ function EmptyState({ onBrowse }: { onBrowse: () => void }) {
       <div className="mx-auto h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center">
         <CalendarIcon className="h-7 w-7 text-muted-foreground" />
       </div>
-      <h3 className="mt-4 font-display text-lg font-bold text-foreground">No reservations yet</h3>
+      <h3 className="mt-4 font-display text-lg font-bold text-foreground">Aún no tienes reservas</h3>
       <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
-        Once you book a court your reservations will show up here.
+        Cuando reserves una cancha, tus reservas aparecerán aquí.
       </p>
       <Button onClick={onBrowse} className="mt-6 rounded-xl shadow-brand font-medium cursor-pointer">
-        Browse courts
+        Ver canchas
       </Button>
     </Card>
   );

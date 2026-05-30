@@ -53,9 +53,9 @@ export default function CourtsPage() {
           {/* Encabezado y barra de búsqueda */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-display font-bold">Find your court</h1>
+              <h1 className="text-3xl font-display font-bold">Encuentra tu cancha</h1>
               <p className="text-muted-foreground mt-1">
-                {loading ? "Loading available courts..." : `${filtered.length} courts available across ${sportsData.length} sports.`}
+                {loading ? "Cargando canchas disponibles..." : `${filtered.length} canchas disponibles en ${sportsData.length} deportes.`}
               </p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
@@ -64,12 +64,12 @@ export default function CourtsPage() {
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name or area…"
+                  placeholder="Buscar por nombre o zona..."
                   className="pl-9 h-11 rounded-xl bg-card"
                 />
               </div>
               <Button variant="outline" className="h-11 rounded-xl">
-                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filters
+                <SlidersHorizontal className="h-4 w-4 mr-2" /> Filtros
               </Button>
             </div>
           </div>
@@ -77,7 +77,7 @@ export default function CourtsPage() {
           {/* Sport chips */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             <Chip active={sport === "all"} onClick={() => setSport("all")}>
-              <Filter className="h-3.5 w-3.5" /> All sports
+              <Filter className="h-3.5 w-3.5" /> Todos los deportes
             </Chip>
             {sportsData.map((s) => {
               const Icon = s.icon;
@@ -91,35 +91,35 @@ export default function CourtsPage() {
 
           {/* Barra de conteo de resultados y ordenamiento */}
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{filtered.length} results</span>
+            <span>{filtered.length} resultados</span>
             <div className="flex items-center gap-2">
-              <span>Sort by:</span>
+              <span>Ordenar por:</span>
               <button 
                 onClick={() => setSort("rating")} 
                 className={cn("font-medium cursor-pointer transition", sort === "rating" ? "text-primary font-semibold" : "hover:text-foreground")}
               >
-                Top rated
+                Mejor calificación
               </button>
               <span>·</span>
               <button 
                 onClick={() => setSort("price")} 
                 className={cn("font-medium cursor-pointer transition", sort === "price" ? "text-primary font-semibold" : "hover:text-foreground")}
               >
-                Price
+                Precio
               </button>
             </div>
           </div>
 
           {/* Sección de resultados / Carga */}
           {loading ? (
-            <div className="text-center p-16 text-muted-foreground font-medium">Loading courts...</div>
+            <div className="text-center p-16 text-muted-foreground font-medium">Cargando canchas...</div>
           ) : filtered.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border p-16 text-center bg-card shadow-sm">
               <div className="mx-auto h-14 w-14 rounded-2xl bg-secondary flex items-center justify-center">
                 <Search className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="mt-4 font-display font-semibold">No courts match your filters</h3>
-              <p className="text-sm text-muted-foreground mt-1">Try a different sport or clear your search.</p>
+              <h3 className="mt-4 font-display font-semibold">No hay canchas con esos filtros</h3>
+              <p className="text-sm text-muted-foreground mt-1">Prueba otro deporte o limpia la búsqueda.</p>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -1,4 +1,4 @@
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Redirect, Route } from "react-router-dom";
 import { IonRouterOutlet } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
@@ -16,6 +16,8 @@ import BookCourt from "../pages/client/BookCourt";
 import ClientReservations from "../pages/client/ClientReservations";
 import PendingReservation from "../pages/client/PendingReservation";
 import ReservationDetail from "../pages/client/ReservaDetail";
+import AdminReservations from "../pages/admin/AdminReservations";
+import AdminReservationDetail from "../pages/admin/AdminReservationDetail";
 
 function ProtectedRoute({ component: Component, allowedRoles, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -61,6 +63,20 @@ export default function AppRoutes() {
           exact
           path="/admin"
           component={AdminHome}
+          allowedRoles={["admin"]}
+        />
+
+        <ProtectedRoute
+          exact
+          path="/admin/reservations"
+          component={AdminReservations}
+          allowedRoles={["admin"]}
+        />
+
+        <ProtectedRoute
+          exact
+          path="/admin/reservations/:id"
+          component={AdminReservationDetail}
           allowedRoles={["admin"]}
         />
 

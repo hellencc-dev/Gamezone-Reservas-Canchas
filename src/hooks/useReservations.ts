@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { db } from "../firebase/config"; // Asegúrate de que esta sea la ruta a tu config de firebase
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../firebase/config";
 import { useAuth } from "./useAuth";
+import { normalizeReservationStatus } from "../components/status-badge";
 
 export interface ReservationFirebase {
   id: string;
@@ -12,6 +13,9 @@ export interface ReservationFirebase {
   endTime: string;
   status: string;
   totalPrice: number;
+  duration?: number;
+  playersCount?: number;
+  notes?: string;
   createdAt?: any;
 }
 
@@ -22,27 +26,42 @@ export function useReservations() {
 
   useEffect(() => {
     if (!user?.uid) {
+      setReservations([]);
       setLoadingReservations(false);
       return;
     }
 
-    // Buscamos en la colección 'reservations' solo los documentos que coincidan con el userId del cliente logueado
+    setLoadingReservations(true);
+
     const q = query(
       collection(db, "reservations"),
       where("userId", "==", user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const docs: ReservationFirebase[] = [];
-      querySnapshot.forEach((doc) => {
-        docs.push({ id: doc.id, ...doc.data() } as ReservationFirebase);
-      });
-      setReservations(docs);
-      setLoadingReservations(false);
-    }, (error) => {
-      console.error("Error al traer reservas de Firebase: ", error);
-      setLoadingReservations(false);
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const docs: ReservationFirebase[] = [];
+
+        querySnapshot.forEach((docItem) => {
+          const data = docItem.data();
+          docs.push({
+            id: docItem.id,
+            ...data,
+            status: normalizeReservationStatus(data.status || "temporal"),
+          } as ReservationFirebase);
+        });
+
+        setReservations(
+          docs.sort((a, b) => `${b.date} ${b.startTime}`.localeCompare(`${a.date} ${a.startTime}`))
+        );
+        setLoadingReservations(false);
+      },
+      (error) => {
+        console.error("Error al traer reservas de Firebase:", error);
+        setLoadingReservations(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [user?.uid]);

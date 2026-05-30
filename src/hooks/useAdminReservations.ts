@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-
 import { db } from "../firebase/config";
+import { normalizeReservationStatus } from "../components/status-badge";
 
-export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "completed";
+export type ReservationStatus = "temporal" | "confirmada" | "cancelada" | "expirada";
 
 export interface AdminReservation {
   id: string;
@@ -23,7 +23,12 @@ export interface AdminReservation {
   createdAt?: unknown;
 }
 
-type ReservationDocument = Omit<AdminReservation, "courtName" | "userDisplayName" | "userEmail">;
+type ReservationDocument = Omit<
+  AdminReservation,
+  "courtName" | "userDisplayName" | "userEmail" | "status"
+> & {
+  status: string;
+};
 
 interface CourtInfo {
   name: string;
@@ -58,21 +63,35 @@ export function useAdminReservations() {
   const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
-    const reservationsQuery = query(collection(db, "reservations"), orderBy("date", "asc"));
+    const reservationsQuery = query(
+      collection(db, "reservations"),
+      orderBy("date", "asc")
+    );
 
     const unsubscribe = onSnapshot(
       reservationsQuery,
       (snapshot) => {
         const docs = snapshot.docs
-          .map((doc) => ({ id: doc.id, ...doc.data() }) as ReservationDocument)
+          .map((docItem) => {
+            const data = docItem.data();
+            return {
+              id: docItem.id,
+              courtId: textValue(data.courtId),
+              userId: textValue(data.userId),
+              date: textValue(data.date),
+              startTime: textValue(data.startTime),
+              endTime: textValue(data.endTime),
+              duration: Number(data.duration) || 60,
+              playersCount: Number(data.playersCount) || 1,
+              notes: textValue(data.notes),
+              status: normalizeReservationStatus(data.status || "temporal"),
+              totalPrice: Number(data.totalPrice) || 0,
+              createdAt: data.createdAt,
+            } as ReservationDocument;
+          })
           .sort((a, b) => {
             const dateOrder = a.date.localeCompare(b.date);
-
-            if (dateOrder !== 0) {
-              return dateOrder;
-            }
-
-            return a.startTime.localeCompare(b.startTime);
+            return dateOrder !== 0 ? dateOrder : a.startTime.localeCompare(b.startTime);
           });
 
         setReservationDocs(docs);
@@ -81,7 +100,7 @@ export function useAdminReservations() {
       (error) => {
         console.error("Error al traer reservas administrativas:", error);
         setLoadingReservationsData(false);
-      },
+      }
     );
 
     return () => unsubscribe();
@@ -91,9 +110,9 @@ export function useAdminReservations() {
     const unsubscribe = onSnapshot(
       collection(db, "courts"),
       (snapshot) => {
-        const courts = snapshot.docs.reduce<Record<string, CourtInfo>>((acc, doc) => {
-          const data = doc.data();
-          acc[doc.id] = {
+        const courts = snapshot.docs.reduce<Record<string, CourtInfo>>((acc, docItem) => {
+          const data = docItem.data();
+          acc[docItem.id] = {
             name: textValue(data.name) || "Cancha sin nombre",
           };
 
@@ -106,7 +125,7 @@ export function useAdminReservations() {
       (error) => {
         console.error("Error al traer canchas:", error);
         setLoadingCourts(false);
-      },
+      }
     );
 
     return () => unsubscribe();
@@ -116,9 +135,9 @@ export function useAdminReservations() {
     const unsubscribe = onSnapshot(
       collection(db, "users"),
       (snapshot) => {
-        const users = snapshot.docs.reduce<Record<string, UserInfo>>((acc, doc) => {
-          const data = doc.data();
-          acc[doc.id] = {
+        const users = snapshot.docs.reduce<Record<string, UserInfo>>((acc, docItem) => {
+          const data = docItem.data();
+          acc[docItem.id] = {
             displayName: buildUserDisplayName(data),
             email: textValue(data.email),
           };
@@ -132,7 +151,7 @@ export function useAdminReservations() {
       (error) => {
         console.error("Error al traer usuarios:", error);
         setLoadingUsers(false);
-      },
+      }
     );
 
     return () => unsubscribe();
@@ -145,6 +164,7 @@ export function useAdminReservations() {
 
       return {
         ...reservation,
+        status: normalizeReservationStatus(reservation.status) as ReservationStatus,
         courtName: court?.name || "Cancha sin nombre",
         userDisplayName: user?.displayName || "Usuario sin nombre",
         userEmail: user?.email || "",

@@ -20,6 +20,7 @@ import { StatusBadge } from "../../components/status-badge";
 import { useAuth } from "../../hooks/useAuth";
 import { useCourts } from "../../hooks/useCourts";
 import { useReservations } from "../../hooks/useReservations";
+import { useNotifications } from "../../hooks/useNotifications";
 import { db } from "../../firebase/config";
 import { doc, updateDoc } from "firebase/firestore";
 
@@ -30,14 +31,15 @@ export default function ClientHome() {
   const { courts, loading } = useCourts();
   const history = useHistory();
   const { reservations, loadingReservations } = useReservations();
+  const { createNotification } = useNotifications();
 
   // Estado para el temporizador local
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  const upcoming = reservations.filter((r) => r.status === "confirmed" || r.status === "temporary");
+  const upcoming = reservations.filter((r) => r.status === "confirmada" || r.status === "temporal");
   
   // Encontrar si hay un hold temporal activo actualmente
-  const activeHold = reservations.find((r) => r.status === "temporary");
+  const activeHold = reservations.find((r) => r.status === "temporal");
 
   // Efecto para controlar la cuenta regresiva del Hold
   useEffect(() => {
@@ -64,9 +66,20 @@ export default function ClientHome() {
         if (prev === null) return null;
         if (prev <= 1) {
           clearInterval(interval);
-          // Marcar como cancelado en Firebase de forma asíncrona si expira
+          // Marcar como expirada en Firebase de forma asíncrona si expira
           const docRef = doc(db, "reservations", activeHold.id);
-          updateDoc(docRef, { status: "cancelled" }).catch(console.error);
+          updateDoc(docRef, { status: "expirada" })
+            .then(() =>
+              createNotification({
+                userId: activeHold.userId,
+                title: "Reserva expirada",
+                message: "Tu reserva expiró porque no confirmaste el pago a tiempo.",
+                type: "reservation_expired",
+                reservationId: activeHold.id,
+                courtId: activeHold.courtId,
+              })
+            )
+            .catch(console.error);
           return 0;
         }
         return prev - 1;
@@ -74,7 +87,7 @@ export default function ClientHome() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeHold, loadingReservations]);
+  }, [activeHold, createNotification, loadingReservations]);
 
   // Formatear el tiempo restante en MM:SS
   const formatTime = () => {
@@ -85,10 +98,10 @@ export default function ClientHome() {
   };
 
   const stats = [
-    { label: "Active bookings", value: upcoming.length, icon: CalendarCheck, tint: "bg-primary-soft text-primary" },
-    { label: "Played this month", value: 12, icon: Flame, tint: "bg-accent-soft text-accent" },
-    { label: "Hours on court", value: "26h", icon: Clock, tint: "bg-success-soft text-success" },
-    { label: "Loyalty points", value: 1840, icon: TrendingUp, tint: "bg-warning-soft text-warning" },
+    { label: "Reservas activas", value: upcoming.length, icon: CalendarCheck, tint: "bg-primary-soft text-primary" },
+    { label: "Partidos este mes", value: 12, icon: Flame, tint: "bg-accent-soft text-accent" },
+    { label: "Horas en cancha", value: "26h", icon: Clock, tint: "bg-success-soft text-success" },
+    { label: "Puntos de fidelidad", value: 1840, icon: TrendingUp, tint: "bg-warning-soft text-warning" },
   ];
 
   const sports = [
@@ -110,7 +123,7 @@ export default function ClientHome() {
               <div className="text-sm opacity-80">Good evening, {user?.firstName || "cliente"} 👋</div>
               <h1 className="mt-2 text-3xl md:text-4xl font-display font-bold">Ready for tonight's match?</h1>
               <p className="mt-2 text-primary-foreground/80 max-w-md">
-                You have {upcoming.length} upcoming reservations and {courts ? courts.length : 0} courts available within 5 km.
+                Tienes {upcoming.length} reservas próximas y {courts ? courts.length : 0} canchas disponibles cerca.
               </p>
             </div>
             <div className="flex gap-2">
@@ -118,7 +131,7 @@ export default function ClientHome() {
                 <Plus className="mr-1 h-4 w-4" /> Book a court
               </Button>
               <Button variant="outline" className="rounded-xl h-11 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white" onClick={() => history.push("/client/reservations")}>
-                My reservations
+                Mis reservas
               </Button>
             </div>
           </div>
@@ -166,7 +179,7 @@ export default function ClientHome() {
         <div className="grid lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2 p-6 rounded-2xl border-border bg-card shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-display font-bold">Upcoming reservations</h2>
+              <h2 className="text-xl font-display font-bold">Próximas reservas</h2>
               <Button size="sm" variant="ghost" onClick={() => history.push("/client/reservations")}>
                 View all
               </Button>
@@ -174,7 +187,7 @@ export default function ClientHome() {
             <div className="mt-4 space-y-3">
               {upcoming.length === 0 && (
                 <div className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                  No upcoming reservations
+                  No tienes reservas próximas
                 </div>
               )}
 
@@ -214,12 +227,12 @@ export default function ClientHome() {
           <Card className={`p-6 rounded-2xl border-border bg-card shadow-sm transition-all duration-300 ${activeHold ? "opacity-100 scale-100" : "opacity-40 scale-95 cursor-not-allowed"}`}>
             <div className="flex items-center gap-2">
               <Timer className={`h-5 w-5 ${timeLeft !== null && timeLeft < 60 ? "text-danger animate-pulse" : "text-accent"}`} />
-              <h2 className="font-display font-bold text-foreground">Hold expires soon</h2>
+              <h2 className="font-display font-bold text-foreground">Reserva temporal por expirar</h2>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Complete payment to confirm your booking.</p>
+            <p className="text-sm text-muted-foreground mt-1">Confirma el pago simulado para asegurar tu reserva.</p>
             
             <div className={`mt-4 rounded-xl p-4 text-center transition-colors ${timeLeft !== null && timeLeft < 60 ? "bg-danger-soft text-danger" : "bg-accent-soft text-accent"}`}>
-              <div className="text-xs uppercase tracking-wider font-semibold opacity-80">Time remaining</div>
+              <div className="text-xs uppercase tracking-wider font-semibold opacity-80">Tiempo restante</div>
               <div className="text-3xl font-display font-bold mt-1 tabular-nums">
                 {activeHold ? formatTime() : "00:00"}
               </div>
@@ -233,7 +246,7 @@ export default function ClientHome() {
                 state: { reservationId: activeHold?.id }
               })}
             >
-              Complete payment
+              Confirmar pago
             </Button>
           </Card>
         </div>
@@ -247,7 +260,7 @@ export default function ClientHome() {
             </Button>
           </div>
           {loading ? (
-            <div className="text-center p-6 text-sm text-muted-foreground font-medium">Loading courts...</div>
+            <div className="text-center p-6 text-sm text-muted-foreground font-medium">Cargando canchas...</div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {courts && courts.slice(0, 3).map((c) => (

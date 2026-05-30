@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
-import { IonPage, IonContent } from "@ionic/react";
+import { IonContent, IonPage } from "@ionic/react";
 import {
   ArrowLeft,
   Calendar,
@@ -10,9 +10,9 @@ import {
   MapPin,
   MessageSquare,
   Share2,
-  X,
+  Target,
   Trophy,
-  Target
+  X,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -26,39 +26,38 @@ const sportIconMap: Record<string, { name: string; icon: any }> = {
   futbol: { name: "Fútbol", icon: Trophy },
   tenis: { name: "Tenis", icon: Target },
   baloncesto: { name: "Baloncesto", icon: Calendar },
-  basketball: { name: "Basketball", icon: Calendar },
+  basketball: { name: "Baloncesto", icon: Calendar },
 };
 
 export default function ReservationDetail() {
-  const { id } = useParams<{ id: string }>(); // Capturamos el ID de la ruta
+  const { id } = useParams<{ id: string }>();
   const history = useHistory();
   const { reservations, loadingReservations } = useReservations();
   const { courts, loading: loadingCourts } = useCourts();
 
   const [cancelling, setCancelling] = useState(false);
 
-  // Buscar la reserva específica
-  const reservation = reservations.find((x) => x.id === id);
-  // Buscar la cancha vinculada a esa reserva
-  const court = courts?.find((c) => c.id === reservation?.courtId);
-
+  const reservation = reservations.find((item) => item.id === id);
+  const court = courts?.find((item) => item.id === reservation?.courtId);
   const loading = loadingReservations || loadingCourts;
 
-  // Acción para cancelar la reserva en Firebase en tiempo real
   const handleCancelReservation = async () => {
     if (!reservation) return;
-    
-    const confirmar = window.confirm("Are you sure you want to cancel this reservation? This action cannot be undone.");
-    if (!confirmar) return;
+
+    const confirm = window.confirm(
+      "¿Seguro que quieres cancelar esta reserva? Esta acción no se puede deshacer."
+    );
+    if (!confirm) return;
 
     setCancelling(true);
     try {
-      const docRef = doc(db, "reservations", reservation.id);
-      await updateDoc(docRef, { status: "cancelled" });
-      alert("Reservation cancelled successfully.");
+      await updateDoc(doc(db, "reservations", reservation.id), {
+        status: "cancelada",
+      });
+      alert("Reserva cancelada correctamente.");
     } catch (error) {
-      console.error("Error cancelling reservation:", error);
-      alert("Could not cancel reservation. Try again.");
+      console.error("Error al cancelar reserva:", error);
+      alert("No se pudo cancelar la reserva. Inténtalo de nuevo.");
     } finally {
       setCancelling(false);
     }
@@ -67,7 +66,7 @@ export default function ReservationDetail() {
   if (loading) {
     return (
       <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
-        Loading reservation details...
+        Cargando detalles de la reserva...
       </div>
     );
   }
@@ -76,105 +75,137 @@ export default function ReservationDetail() {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 text-center space-y-4">
-          <p className="text-lg font-bold text-foreground">Reservation not found</p>
-          <Button onClick={() => history.push("/client/reservations")}>Back to reservations</Button>
+          <p className="text-lg font-bold text-foreground">Reserva no encontrada</p>
+          <Button onClick={() => history.push("/client/reservations")}>
+            Volver a reservas
+          </Button>
         </div>
       </IonPage>
     );
   }
 
-  const sportData = sportIconMap[court.sport?.toLowerCase()] || { name: court.sport || "Sport", icon: Calendar };
+  const sportData = sportIconMap[court.sport?.toLowerCase()] || {
+    name: court.sport || "Deporte",
+    icon: Calendar,
+  };
 
-  // SOLUCIÓN AL TIPADO: Usamos variables locales basadas en el precio total real guardado
   const baseRate = court.price || 0;
-  const serviceFee = 2.50;
-  
-  // Si totalPrice existe en Firebase lo usamos directamente, sino calculamos una hora estándar
-  const totalPaid = Number(reservation.totalPrice) || (baseRate + serviceFee);
-  
-  // Visualmente calculamos la etiqueta o mostramos los 60 min por defecto del slot
-  const durationLabel = "60 min"; 
+  const serviceFee = 2.5;
+  const totalPaid = Number(reservation.totalPrice) || baseRate + serviceFee;
+  const durationLabel = `${reservation.duration || 60} min`;
 
   return (
     <IonPage className="bg-transparent border-none">
-      <IonContent fullscreen scrollEvents={true} style={{ '--background': '#f8fafc' }}>
+      <IonContent fullscreen scrollEvents={true} style={{ "--background": "#f8fafc" }}>
         <div className="w-full min-h-screen text-[#334155] p-6 md:p-10">
           <div className="max-w-4xl mx-auto space-y-6">
-            
-            {/* Botón de Atrás */}
-            <button 
-              onClick={() => history.push("/client/reservations")} 
+            <button
+              onClick={() => history.push("/client/reservations")}
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to reservations
+              <ArrowLeft className="h-4 w-4" /> Volver a reservas
             </button>
 
-            {/* Título de la sección */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <div className="text-xs text-muted-foreground font-semibold font-mono uppercase tracking-wider">
-                  Reservation GZ-{reservation.id.slice(0, 5).toUpperCase()}
+                  Reserva GZ-{reservation.id.slice(0, 5).toUpperCase()}
                 </div>
-                <h1 className="text-3xl font-display font-bold mt-1 text-foreground">{court.name}</h1>
+                <h1 className="text-3xl font-display font-bold mt-1 text-foreground">
+                  {court.name}
+                </h1>
               </div>
               <StatusBadge status={reservation.status} className="text-sm px-3 py-1 font-semibold" />
             </div>
 
-            {/* Banner de Imagen */}
             <div className="rounded-2xl overflow-hidden aspect-[3/1] bg-secondary shadow-sm">
               {court.image ? (
                 <img src={court.image} alt="" className="h-full w-full object-cover" />
               ) : (
-                <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground">No image available</div>
+                <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground">
+                  Imagen no disponible
+                </div>
               )}
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                
-                {/* DETALLES DE LA RESERVA */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg text-foreground">Booking details</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    Detalles de la reserva
+                  </h3>
                   <div className="mt-4 grid sm:grid-cols-2 gap-4">
-                    <Detail icon={Calendar} label="Date" value={reservation.date} />
-                    <Detail icon={Clock} label="Time" value={`${reservation.startTime} – ${reservation.endTime} (${durationLabel})`} />
-                    <Detail icon={MapPin} label="Location" value={court.location} />
-                    <Detail icon={sportData.icon} label="Sport" value={sportData.name} />
+                    <Detail icon={Calendar} label="Fecha" value={reservation.date} />
+                    <Detail
+                      icon={Clock}
+                      label="Hora"
+                      value={`${reservation.startTime} - ${reservation.endTime} (${durationLabel})`}
+                    />
+                    <Detail icon={MapPin} label="Ubicación" value={court.location} />
+                    <Detail icon={sportData.icon} label="Deporte" value={sportData.name} />
                   </div>
                 </Card>
 
-                {/* DETALLES FINALES DE PRECIOS */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg text-foreground">Payment</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground">Pago</h3>
                   <div className="mt-4 space-y-2 text-sm">
-                    <Row label="Court rate" value={`$${baseRate}.00 / hr`} />
-                    <Row label="Duration factor" value={durationLabel} />
-                    <Row label="Service fee" value={`$${serviceFee.toFixed(2)}`} />
+                    <Row label="Tarifa de cancha" value={`$${baseRate}.00 / hr`} />
+                    <Row label="Duración" value={durationLabel} />
+                    <Row label="Servicio" value={`$${serviceFee.toFixed(2)}`} />
                     <div className="pt-2 mt-2 border-t border-border flex justify-between items-baseline">
-                      <span className="font-bold text-foreground">Total paid</span>
-                      <span className="font-display font-bold text-xl text-primary">${totalPaid.toFixed(2)}</span>
+                      <span className="font-bold text-foreground">Total pagado</span>
+                      <span className="font-display font-bold text-xl text-primary">
+                        ${totalPaid.toFixed(2)}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 pt-3 text-xs text-muted-foreground font-medium">
-                      <CreditCard className="h-4 w-4 text-primary" /> Visa ending in 4242 · Approved by GameZone
+                      <CreditCard className="h-4 w-4 text-primary" /> Pago simulado aprobado por GameZone
                     </div>
                   </div>
                 </Card>
 
-                {/* LÍNEA DE TIEMPO */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg text-foreground">Timeline</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground">
+                    Línea de tiempo
+                  </h3>
                   <div className="mt-4 space-y-4 relative before:absolute before:bottom-2 before:top-2 before:left-[5px] before:w-0.5 before:bg-border">
                     {[
-                      { t: "Reservation created", time: "Completed successfully", done: true },
-                      { t: "Payment confirmed", time: "Funds secured", done: reservation.status !== "temporary" && reservation.status !== "cancelled" },
-                      { t: "Reminder scheduling", time: "1 hour before match", done: reservation.status === "confirmed" },
-                      { t: "Match closure", time: "Status review", done: reservation.status === "expired" },
-                    ].map((step, i) => (
-                      <div key={i} className="flex gap-4 relative z-10">
-                        <div className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 transition-colors duration-300 ${step.done ? "bg-primary ring-4 ring-primary-soft" : "bg-border"}`} />
+                      { t: "Reserva creada", time: "Completado correctamente", done: true },
+                      {
+                        t: "Pago confirmado",
+                        time: "Reserva confirmada",
+                        done: reservation.status === "confirmada",
+                      },
+                      {
+                        t: "Recordatorio programado",
+                        time: "1 hora antes del partido",
+                        done: reservation.status === "confirmada",
+                      },
+                      {
+                        t: "Cierre de reserva",
+                        time: "Estado final actualizado",
+                        done:
+                          reservation.status === "expirada" ||
+                          reservation.status === "cancelada",
+                      },
+                    ].map((step) => (
+                      <div key={step.t} className="flex gap-4 relative z-10">
+                        <div
+                          className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 transition-colors duration-300 ${
+                            step.done ? "bg-primary ring-4 ring-primary-soft" : "bg-border"
+                          }`}
+                        />
                         <div>
-                          <div className={`text-sm font-semibold ${step.done ? "text-foreground" : "text-muted-foreground"}`}>{step.t}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{step.time}</div>
+                          <div
+                            className={`text-sm font-semibold ${
+                              step.done ? "text-foreground" : "text-muted-foreground"
+                            }`}
+                          >
+                            {step.t}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {step.time}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -182,39 +213,42 @@ export default function ReservationDetail() {
                 </Card>
               </div>
 
-              {/* PANEL DE ACCIONES LATERALES */}
               <div className="space-y-4">
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg text-foreground">Actions</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground">Acciones</h3>
                   <div className="mt-4 space-y-2">
-                    <Button type="button" className="w-full rounded-xl h-11 font-medium cursor-pointer"><Download className="mr-2 h-4 w-4" /> Download receipt</Button>
-                    <Button type="button" variant="outline" className="w-full rounded-xl h-11 font-medium cursor-pointer"><Share2 className="mr-2 h-4 w-4" /> Share booking</Button>
-                    <Button type="button" variant="outline" className="w-full rounded-xl h-11 font-medium cursor-pointer"><MessageSquare className="mr-2 h-4 w-4" /> Contact venue</Button>
-                    
-                    {/* Botón condicional */}
-                    {reservation.status === "confirmed" && (
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                    <Button type="button" className="w-full rounded-xl h-11 font-medium cursor-pointer">
+                      <Download className="mr-2 h-4 w-4" /> Descargar recibo
+                    </Button>
+                    <Button type="button" variant="outline" className="w-full rounded-xl h-11 font-medium cursor-pointer">
+                      <Share2 className="mr-2 h-4 w-4" /> Compartir reserva
+                    </Button>
+                    <Button type="button" variant="outline" className="w-full rounded-xl h-11 font-medium cursor-pointer">
+                      <MessageSquare className="mr-2 h-4 w-4" /> Contactar sede
+                    </Button>
+
+                    {reservation.status === "confirmada" && (
+                      <Button
+                        type="button"
+                        variant="outline"
                         disabled={cancelling}
                         onClick={handleCancelReservation}
                         className="w-full rounded-xl h-11 font-medium border-danger/40 text-danger hover:bg-danger-soft hover:text-danger cursor-pointer disabled:opacity-50"
                       >
-                        <X className="mr-2 h-4 w-4" /> {cancelling ? "Cancelling..." : "Cancel reservation"}
+                        <X className="mr-2 h-4 w-4" /> {cancelling ? "Cancelando..." : "Cancelar reserva"}
                       </Button>
                     )}
                   </div>
                 </Card>
-                
+
                 <Card className="p-6 rounded-2xl gradient-brand text-primary-foreground shadow-sm">
-                  <h3 className="font-display font-bold text-base">Need to change?</h3>
+                  <h3 className="font-display font-bold text-base">¿Necesitas cambiar algo?</h3>
                   <p className="text-xs text-primary-foreground/80 mt-1 leading-relaxed">
-                    Free cancellation is allowed up to 24h before your scheduled slot. Funds will be returned to your original payment card.
+                    La cancelación está disponible hasta 24 horas antes del horario reservado.
                   </p>
                 </Card>
               </div>
             </div>
-
           </div>
         </div>
       </IonContent>

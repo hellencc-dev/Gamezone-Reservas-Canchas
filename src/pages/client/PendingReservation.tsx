@@ -17,12 +17,13 @@ export default function PendingReservation() {
   const history = useHistory();
   const { user } = useAuth();
   const { courts } = useCourts();
-  const { createNotification } = useNotifications();
+  const { createNotification, notifyAdmins } = useNotifications();
 
   const [latestHold, setLatestHold] = useState<any>(null);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [loadingHold, setLoadingHold] = useState(true);
   const [processingAction, setProcessingAction] = useState(false);
+  const [expiringHold, setExpiringHold] = useState(false);
 
   useEffect(() => {
     if (!user?.uid) return;
@@ -30,7 +31,7 @@ export default function PendingReservation() {
     const q = query(
       collection(db, "reservations"),
       where("userId", "==", user.uid),
-      where("status", "==", "temporary"),
+      where("status", "in", ["temporal", "temporary"]),
       orderBy("createdAt", "desc"),
       limit(1)
     );
@@ -84,18 +85,26 @@ export default function PendingReservation() {
     setProcessingAction(true);
     try {
       const docRef = doc(db, "reservations", latestHold.id);
-      await updateDoc(docRef, { status: "confirmed" });
+      await updateDoc(docRef, { status: "confirmada" });
 
       await createNotification({
         userId: user.uid,
-        title: "¡Reserva Confirmada! 🎉",
-        message: `¡Tu pago fue aprobado! Tu partido en ${court?.name || "la cancha"} está programado para el ${latestHold.date}.`,
+        title: "Reserva confirmada",
+        message: "Tu reserva fue confirmada correctamente.",
         type: "reservation_confirmed",
         reservationId: latestHold.id,
         courtId: latestHold.courtId
       });
 
-      alert("¡Pago procesado con éxito! Tu reserva está confirmada.");
+      await notifyAdmins({
+        title: "Reserva confirmada",
+        message: "Un cliente confirmó una reserva.",
+        type: "reservation_confirmed",
+        reservationId: latestHold.id,
+        courtId: latestHold.courtId
+      });
+
+      alert("Pago simulado confirmado. Tu reserva está confirmada.");
       history.push("/client/reservations");
     } catch (error) {
       console.error("Error al confirmar reserva:", error);
@@ -109,7 +118,7 @@ export default function PendingReservation() {
     setProcessingAction(true);
     try {
       const docRef = doc(db, "reservations", latestHold.id);
-      await updateDoc(docRef, { status: "cancelled" });
+      await updateDoc(docRef, { status: "cancelada" });
       history.push("/client/courts");
     } catch (error) {
       console.error("Error al liberar reserva:", error);
@@ -119,12 +128,26 @@ export default function PendingReservation() {
   };
 
   const handleExpireHold = async () => {
-    if (!latestHold) return;
+    if (!latestHold || expiringHold) return;
     try {
+      setExpiringHold(true);
       const docRef = doc(db, "reservations", latestHold.id);
-      await updateDoc(docRef, { status: "cancelled" });
+      await updateDoc(docRef, { status: "expirada" });
+
+      if (user?.uid) {
+        await createNotification({
+          userId: user.uid,
+          title: "Reserva expirada",
+          message: "Tu reserva expiró porque no confirmaste el pago a tiempo.",
+          type: "reservation_expired",
+          reservationId: latestHold.id,
+          courtId: latestHold.courtId
+        });
+      }
     } catch (e) {
       console.error(e);
+    } finally {
+      setExpiringHold(false);
     }
   };
 
@@ -138,7 +161,7 @@ export default function PendingReservation() {
   if (loadingHold) {
     return (
       <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
-        Loading your reservation hold...
+        Cargando tu reserva temporal...
       </div>
     );
   }
@@ -148,9 +171,9 @@ export default function PendingReservation() {
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 text-center space-y-4">
           <AlertCircle className="h-12 w-12 text-muted-foreground" />
-          <h2 className="text-xl font-bold">No active holds found</h2>
-          <p className="text-sm text-muted-foreground max-w-xs">You don't have any pending courts. Go secure one!</p>
-          <Button onClick={() => history.push("/client/courts")}>Browse courts</Button>
+          <h2 className="text-xl font-bold">No hay reservas temporales activas</h2>
+          <p className="text-sm text-muted-foreground max-w-xs">No tienes canchas pendientes de pago.</p>
+          <Button onClick={() => history.push("/client/courts")}>Ver canchas</Button>
         </div>
       </IonPage>
     );
@@ -164,23 +187,23 @@ export default function PendingReservation() {
 
             <div className="text-center">
               <div className="inline-flex items-center gap-2 rounded-full bg-warning-soft text-warning px-3 py-1 text-xs font-semibold">
-                <AlertCircle className="h-3.5 w-3.5" /> Temporary reservation
+                <AlertCircle className="h-3.5 w-3.5" /> Reserva temporal
               </div>
-              <h1 className="mt-4 text-3xl md:text-4xl font-display font-bold text-foreground">Your court is on hold</h1>
+              <h1 className="mt-4 text-3xl md:text-4xl font-display font-bold text-foreground">Tu cancha está retenida</h1>
               <p className="mt-2 text-muted-foreground max-w-md mx-auto text-sm">
-                Complete payment before the timer runs out or the slot will be released.
+                Confirma el pago simulado antes de que termine el temporizador o la reserva expirará.
               </p>
             </div>
 
             <Card className="p-8 rounded-3xl border-border bg-card text-center relative overflow-hidden shadow-sm">
               <div className={`absolute inset-x-0 top-0 h-1 transition-colors ${urgent ? "bg-danger" : "bg-accent"}`} />
-              <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Time remaining</div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Tiempo restante</div>
               <div className={`mt-3 text-7xl font-display font-bold tabular-nums ${urgent ? "text-danger animate-pulse" : "text-accent"}`}>
                 {mm}:{ss}
               </div>
               <Progress value={pct} className="mt-6 h-2" />
               <p className="text-xs text-muted-foreground mt-3 font-medium">
-                {timeLeft === 0 ? "Hold expired" : urgent ? "Hurry up — almost expired 🔥" : "Plenty of time to confirm"}
+                {timeLeft === 0 ? "Reserva expirada" : urgent ? "Apúrate, está por expirar" : "Aún tienes tiempo para confirmar"}
               </p>
             </Card>
 
@@ -205,7 +228,7 @@ export default function PendingReservation() {
                 </div>
                 <div className="sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
                   <div className="text-2xl font-display font-bold text-primary">${(Number(latestHold.totalPrice) || 0).toFixed(2)}</div>
-                  <div className="text-xs text-muted-foreground">incl. fees</div>
+                  <div className="text-xs text-muted-foreground">incluye cargos</div>
                 </div>
               </div>
             </Card>
@@ -217,7 +240,7 @@ export default function PendingReservation() {
                 disabled={timeLeft === 0 || processingAction}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Confirm & pay ${(Number(latestHold.totalPrice) || 0).toFixed(2)}
+                Confirmar pago ${(Number(latestHold.totalPrice) || 0).toFixed(2)}
               </Button>
 
               <Button
@@ -226,15 +249,15 @@ export default function PendingReservation() {
                 onClick={handleReleaseHold}
                 disabled={processingAction}
               >
-                <X className="mr-2 h-4 w-4" /> Release hold
+                <X className="mr-2 h-4 w-4" /> Liberar reserva
               </Button>
             </div>
 
             <div className="flex items-start gap-3 rounded-xl bg-secondary p-4 text-sm text-muted-foreground">
               <Clock className="h-4 w-4 text-accent shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed">
-                A temporary reservation reserves the court for you while you complete payment.
-                After 5 minutes the slot is automatically released to other players.
+                Una reserva temporal retiene la cancha mientras confirmas el pago simulado.
+                Después de 5 minutos, la reserva expira automáticamente.
               </p>
             </div>
 

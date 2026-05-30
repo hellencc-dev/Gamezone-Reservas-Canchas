@@ -1,36 +1,75 @@
 import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
 
-export type ReservationStatusType = 
-  | "confirmed" 
-  | "temporary" 
-  | "pending" 
-  | "cancelled" 
-  | "expired" 
-  | "available" 
-  | "busy" 
+export type ReservationStatusType =
+  | "temporal"
+  | "confirmada"
+  | "cancelada"
+  | "expirada"
+  | "temporary"
+  | "pending"
+  | "confirmed"
+  | "cancelled"
+  | "expired"
+  | "available"
+  | "busy"
   | "closed";
+
+export function normalizeReservationStatus(status: string) {
+  const map: Record<string, string> = {
+    temporary: "temporal",
+    pending: "temporal",
+    confirmed: "confirmada",
+    cancelled: "cancelada",
+    expired: "expirada",
+  };
+
+  return map[status] || status;
+}
 
 export function StatusBadge({
   status,
   className,
 }: {
-  status: ReservationStatusType | string; // Permitimos string para que no choque si Firebase trae un texto libre
+  status: ReservationStatusType | string;
   className?: string;
 }) {
   const map: Record<string, { label: string; cls: string }> = {
-    confirmed: { label: "Confirmed", cls: "bg-success-soft text-success border-success/20" },
-    available: { label: "Available", cls: "bg-success-soft text-success border-success/20" },
-    temporary: { label: "Temporary", cls: "bg-warning-soft text-warning border-warning/30" },
-    pending: { label: "Pending payment", cls: "bg-warning-soft text-warning border-warning/30" },
-    busy: { label: "Occupied", cls: "bg-danger-soft text-danger border-danger/20" },
-    cancelled: { label: "Cancelled", cls: "bg-danger-soft text-danger border-danger/20" },
-    expired: { label: "Expired", cls: "bg-neutral-soft text-muted-foreground border-border" },
-    closed: { label: "Closed", cls: "bg-neutral-soft text-muted-foreground border-border" },
+    confirmada: {
+      label: "Confirmada",
+      cls: "bg-success-soft text-success border-success/20",
+    },
+    available: {
+      label: "Disponible",
+      cls: "bg-success-soft text-success border-success/20",
+    },
+    temporal: {
+      label: "Temporal",
+      cls: "bg-warning-soft text-warning border-warning/30",
+    },
+    busy: {
+      label: "Ocupado",
+      cls: "bg-danger-soft text-danger border-danger/20",
+    },
+    cancelada: {
+      label: "Cancelada",
+      cls: "bg-danger-soft text-danger border-danger/20",
+    },
+    expirada: {
+      label: "Expirada",
+      cls: "bg-neutral-soft text-muted-foreground border-border",
+    },
+    closed: {
+      label: "Cerrada",
+      cls: "bg-neutral-soft text-muted-foreground border-border",
+    },
   };
 
-  // Fallback seguro: si por alguna razón llega un estado raro, usamos 'pending' por defecto para que no se rompa la app
-  const s = map[status] || map["pending"];
+  const normalizedStatus = normalizeReservationStatus(status);
+  const s = map[normalizedStatus] || {
+    label: normalizedStatus || "Pendiente",
+    cls: "bg-warning-soft text-warning border-warning/30",
+  };
 
   return (
     <Badge
@@ -38,7 +77,7 @@ export function StatusBadge({
       className={cn(
         "rounded-full font-medium px-2.5 py-0.5 border inline-flex items-center",
         s.cls,
-        className,
+        className
       )}
     >
       <span className="relative flex h-1.5 w-1.5 mr-1.5">

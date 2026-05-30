@@ -8,7 +8,6 @@ import StatusBadge from "./StatusBadge";
 interface AdminReservationCardProps {
   reservation: AdminReservation;
   onView?: (reservation: AdminReservation) => void;
-  onConfirm?: (reservation: AdminReservation) => void;
   onCancel?: (reservation: AdminReservation) => void;
   updating?: boolean;
 }
@@ -16,7 +15,6 @@ interface AdminReservationCardProps {
 export default function AdminReservationCard({
   reservation,
   onView,
-  onConfirm,
   onCancel,
   updating = false,
 }: AdminReservationCardProps) {
@@ -58,26 +56,16 @@ export default function AdminReservationCard({
             <Eye className="mr-1 h-4 w-4" />
             Ver detalle
           </Button>
-          {reservation.status === "pending" && (
-            <>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                onClick={() => onCancel?.(reservation)}
-                disabled={updating}
-              >
-                Cancelar
-              </Button>
-              <Button
-                size="sm"
-                className="bg-emerald-600 text-white hover:bg-emerald-700"
-                onClick={() => onConfirm?.(reservation)}
-                disabled={updating}
-              >
-                Confirmar
-              </Button>
-            </>
+          {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+              onClick={() => onCancel?.(reservation)}
+              disabled={updating}
+            >
+              Cancelar
+            </Button>
           )}
         </div>
       </CardContent>

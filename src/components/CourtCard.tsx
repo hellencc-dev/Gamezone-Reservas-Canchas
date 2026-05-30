@@ -19,8 +19,8 @@ export interface CourtFirebase {
 const sportIconMap: Record<string, { name: string; icon: any }> = {
   futbol: { name: "Fútbol", icon: Trophy },
   tenis: { name: "Tenis", icon: Target },
-  baloncesto: { name: "Basketball", icon: CalendarCheck },
-  basketball: { name: "Basketball", icon: CalendarCheck },
+  baloncesto: { name: "Baloncesto", icon: CalendarCheck },
+  basketball: { name: "Baloncesto", icon: CalendarCheck },
 };
 
 export function CourtCard({ court }: { court: CourtFirebase }) {
@@ -57,7 +57,7 @@ export function CourtCard({ court }: { court: CourtFirebase }) {
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-muted text-muted-foreground">
-              No image available
+              Imagen no disponible
             </div>
           )}
           
@@ -85,7 +85,7 @@ export function CourtCard({ court }: { court: CourtFirebase }) {
             </h3>
             <div className="text-right shrink-0">
               <div className="text-base font-bold text-primary">${court.price}</div>
-              <div className="text-[10px] text-muted-foreground -mt-0.5">/ hour</div>
+              <div className="text-[10px] text-muted-foreground -mt-0.5">/ hora</div>
             </div>
           </div>
           <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">

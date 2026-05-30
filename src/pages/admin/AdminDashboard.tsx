@@ -27,18 +27,18 @@ import {
 } from "../../components/ui/sidebar";
 
 const mainItems = [
-  { title: "Home", url: "/admin", icon: Home },
+  { title: "Inicio", url: "/admin", icon: Home },
   { title: "Dashboard", url: "/admin#dashboard", icon: LayoutDashboard },
-  { title: "Reservations", url: "/client/reservations", icon: ClipboardList },
-  { title: "Calendar", url: "/admin#calendar", icon: CalendarDays },
-  { title: "Courts", url: "/admin#courts", icon: MapPin },
-  { title: "Availability", url: "/admin#availability", icon: CheckCircle2 },
+  { title: "Reservas", url: "/admin/reservations", icon: ClipboardList },
+  { title: "Calendario", url: "/admin#calendar", icon: CalendarDays },
+  { title: "Canchas", url: "/admin#courts", icon: MapPin },
+  { title: "Disponibilidad", url: "/admin#availability", icon: CheckCircle2 },
 ];
 
 const manageItems = [
-  { title: "Users", url: "/admin#users", icon: Users },
-  { title: "Reports", url: "/admin#reports", icon: BarChart3 },
-  { title: "Settings", url: "/admin#settings", icon: Settings },
+  { title: "Usuarios", url: "/admin#users", icon: Users },
+  { title: "Reportes", url: "/admin#reports", icon: BarChart3 },
+  { title: "Configuración", url: "/admin#settings", icon: Settings },
 ];
 
 export default function AdminDashboard() {
@@ -83,14 +83,14 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-base font-bold text-white">GameZone</span>
-            <span className="text-sm text-white/75">Admin Console</span>
+            <span className="text-sm text-white/75">Panel administrador</span>
           </div>
         </Link>
       </SidebarHeader>
       <SidebarContent className="bg-[#142136] text-white">
         <SidebarGroup className="pt-5">
           <SidebarGroupLabel className="px-3 text-sm font-bold text-white/75">
-            Main
+            Principal
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
         </SidebarGroup>
         <SidebarGroup className="pt-5">
           <SidebarGroupLabel className="px-3 text-sm font-bold text-white/75">
-            Manage
+            Gestión
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-2">

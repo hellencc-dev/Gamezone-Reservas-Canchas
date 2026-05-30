@@ -58,14 +58,16 @@ export default function CourtAvailability() {
     const q = query(
       collection(db, "reservations"),
       where("courtId", "==", courtId),
-      where("date", "==", selectedDate),
-      where("status", "==", "confirmed")
+      where("date", "==", selectedDate)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const resList: any[] = [];
       snapshot.forEach((doc) => {
-        resList.push(doc.data());
+        const data = doc.data();
+        if (["confirmada", "confirmed", "temporal", "temporary"].includes(data.status)) {
+          resList.push(data);
+        }
       });
       setDayReservations(resList);
     });
@@ -92,7 +94,7 @@ export default function CourtAvailability() {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
-          Loading availability...
+          Cargando disponibilidad...
         </div>
       </IonPage>
     );
@@ -102,8 +104,8 @@ export default function CourtAvailability() {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] p-6 text-center">
-          <p className="text-lg font-bold">Court not found</p>
-          <Button onClick={() => history.push("/client/courts")} className="mt-4">Back to courts</Button>
+          <p className="text-lg font-bold">Cancha no encontrada</p>
+          <Button onClick={() => history.push("/client/courts")} className="mt-4">Volver a canchas</Button>
         </div>
       </IonPage>
     );
@@ -120,12 +122,12 @@ export default function CourtAvailability() {
               onClick={() => history.push(`/client/courts/${court.id}`)} 
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to {court.name}
+              <ArrowLeft className="h-4 w-4" /> Volver a {court.name}
             </button>
 
             <div>
-              <h1 className="text-3xl font-display font-bold">Pick your slot</h1>
-              <p className="text-muted-foreground mt-1">Select a date and time to continue.</p>
+              <h1 className="text-3xl font-display font-bold">Elige tu horario</h1>
+              <p className="text-muted-foreground mt-1">Selecciona fecha y hora para continuar.</p>
             </div>
 
             <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
@@ -172,11 +174,11 @@ export default function CourtAvailability() {
               {/* Sección de Horarios Disponibles */}
               <div className="mt-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h3 className="font-display font-bold">Available times</h3>
+                  <h3 className="font-display font-bold">Horarios disponibles</h3>
                   <div className="flex items-center gap-4 text-xs">
-                    <Legend color="bg-success" label="Available" />
-                    <Legend color="bg-danger" label="Occupied" />
-                    <Legend color="bg-warning" label="Yours" />
+                    <Legend color="bg-success" label="Disponible" />
+                    <Legend color="bg-danger" label="Ocupado" />
+                    <Legend color="bg-warning" label="Tuyo" />
                   </div>
                 </div>
 
@@ -210,11 +212,11 @@ export default function CourtAvailability() {
                 <div className="text-sm">
                   {selectedSlot ? (
                     <>
-                      <span className="text-muted-foreground">Selected: </span>
+                      <span className="text-muted-foreground">Seleccionado: </span>
                       <span className="font-semibold text-foreground">{selectedDate} · {selectedSlot}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">Pick a green slot to continue</span>
+                    <span className="text-muted-foreground">Elige un horario verde para continuar</span>
                   )}
                 </div>
                 <Button
@@ -222,7 +224,7 @@ export default function CourtAvailability() {
                   onClick={handleContinue}
                   className="rounded-xl h-11 px-6 shadow-brand font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue to booking
+                  Continuar a reserva
                 </Button>
               </div>
 

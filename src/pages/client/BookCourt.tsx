@@ -31,7 +31,7 @@ export default function BookCourt() {
   const location = useLocation<NavigationState>();
   const { user } = useAuth();
   const { courts, loading } = useCourts();
-  const { createNotification } = useNotifications();
+  const { createNotification, notifyAdmins } = useNotifications();
 
   const selectedDate = location.state?.date || new Date().toISOString().slice(0, 10);
   const selectedSlot = location.state?.slot || "06:00 PM";
@@ -76,7 +76,7 @@ export default function BookCourt() {
         duration: duration,
         playersCount: parseInt(playersCount) || 1,
         notes: notes,
-        status: "temporary",
+        status: "temporal",
         totalPrice: grandTotal,
         createdAt: new Date()
       };
@@ -86,9 +86,17 @@ export default function BookCourt() {
       
       await createNotification({
         userId: user.uid,
-        title: "Cancha Retenida ⏳",
-        message: `Tu espacio en ${court?.name || "la cancha"} está reservado. Tienes 5 minutos para completar el pago.`,
+        title: "Reserva temporal creada",
+        message: "Tu reserva fue creada. Tienes 5 minutos para confirmar el pago.",
         type: "payment_pending",
+        reservationId: docRef.id,
+        courtId: courtId
+      });
+
+      await notifyAdmins({
+        title: "Nueva reserva temporal",
+        message: "Nueva reserva temporal creada por un cliente.",
+        type: "reservation_created",
         reservationId: docRef.id,
         courtId: courtId
       });
@@ -110,7 +118,7 @@ export default function BookCourt() {
   if (loading) {
     return (
       <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
-        Loading checkout details...
+        Cargando detalles de la reserva...
       </div>
     );
   }
@@ -129,19 +137,19 @@ export default function BookCourt() {
               onClick={() => history.push(`/client/courts/${court.id}/availability`)} 
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to availability
+              <ArrowLeft className="h-4 w-4" /> Volver a disponibilidad
             </button>
 
             <div>
-              <h1 className="text-3xl font-display font-bold">Confirm your reservation</h1>
-              <p className="text-muted-foreground mt-1">Review the details and create a 5-minute hold.</p>
+              <h1 className="text-3xl font-display font-bold">Confirma tu reserva</h1>
+              <p className="text-muted-foreground mt-1">Revisa los detalles y crea una reserva temporal de 5 minutos.</p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold">Match duration</h3>
+                  <h3 className="font-display font-bold">Duración del partido</h3>
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     {[60, 90, 120].map((m) => (
                       <button
@@ -165,14 +173,14 @@ export default function BookCourt() {
                 </Card>
 
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold">Player details</h3>
+                  <h3 className="font-display font-bold">Datos del jugador</h3>
                   <div className="mt-4 grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label>Full name</Label>
+                      <Label>Nombre completo</Label>
                       <Input disabled value={`${user?.firstName || ""} ${user?.lastName || ""}`} className="h-11 rounded-xl bg-muted" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Phone</Label>
+                      <Label>Teléfono</Label>
                       <Input disabled value={user?.phone || "+57 (300) 123-4567"} className="h-11 rounded-xl bg-muted" />
                     </div>
                     <div className="space-y-1.5 sm:col-span-2">
@@ -180,18 +188,18 @@ export default function BookCourt() {
                       <Input disabled value={user?.email || ""} className="h-11 rounded-xl bg-muted" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Players</Label>
+                      <Label>Jugadores</Label>
                       <Input type="number" value={playersCount} onChange={(e) => setPlayersCount(e.target.value)} className="h-11 rounded-xl bg-background" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Notes</Label>
-                      <Input placeholder="Any special request?" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background" />
+                      <Label>Notas</Label>
+                      <Input placeholder="¿Alguna solicitud especial?" value={notes} onChange={(e) => setNotes(e.target.value)} className="h-11 rounded-xl bg-background" />
                     </div>
                   </div>
                 </Card>
 
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold">Payment method</h3>
+                  <h3 className="font-display font-bold">Método de pago</h3>
                   <div className="mt-4 space-y-2">
                     {["Visa •••• 4242", "Mastercard •••• 1881", "PayPal"].map((m, i) => (
                       <label
@@ -208,7 +216,7 @@ export default function BookCourt() {
                     ))}
                   </div>
                   <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-success" /> Secured by GameZone Pay
+                    <ShieldCheck className="h-4 w-4 text-success" /> Pago simulado protegido por GameZone
                   </div>
                 </Card>
               </div>
@@ -230,10 +238,10 @@ export default function BookCourt() {
                 </div>
 
                 <div className="mt-5 space-y-2 text-sm">
-                  <Row label="Date" value={selectedDate} />
-                  <Row label="Time" value={`${selectedSlot} (${duration}m)`} />
-                  <Row label="Court rate" value={`$${baseRate} / hr`} />
-                  <Row label="Service fee" value={`$${serviceFee.toFixed(2)}`} />
+                  <Row label="Fecha" value={selectedDate} />
+                  <Row label="Hora" value={`${selectedSlot} (${duration}m)`} />
+                  <Row label="Tarifa de cancha" value={`$${baseRate} / hr`} />
+                  <Row label="Servicio" value={`$${serviceFee.toFixed(2)}`} />
                 </div>
                 
                 <div className="mt-4 pt-4 border-t border-border flex justify-between items-baseline">
@@ -246,10 +254,10 @@ export default function BookCourt() {
                   onClick={handleCreateHold}
                   className="w-full mt-5 h-12 rounded-xl shadow-brand font-medium text-base cursor-pointer disabled:opacity-50"
                 >
-                  <Clock className="mr-2 h-4 w-4" /> {submitting ? "Creating hold..." : "Hold court for 5 minutes"}
+                  <Clock className="mr-2 h-4 w-4" /> {submitting ? "Creando reserva..." : "Retener cancha por 5 minutos"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                  You'll have 5 minutes to complete payment before the slot is released.
+                  Tendrás 5 minutos para confirmar el pago antes de liberar el horario.
                 </p>
               </Card>
             </div>

@@ -28,19 +28,21 @@ import {
   type ReservationStatus,
   useAdminReservations,
 } from "../../hooks/useAdminReservations";
+import { useNotifications } from "../../hooks/useNotifications";
 import ReservationDetailAdmin from "./ReservationDetailAdmin";
 
-const STATUSES: ReservationStatus[] = ["pending", "confirmed", "cancelled", "completed"];
+const STATUSES: ReservationStatus[] = ["temporal", "confirmada", "cancelada", "expirada"];
 
 const STATUS_LABELS: Record<ReservationStatus, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmada",
-  cancelled: "Cancelada",
-  completed: "Completada",
+  temporal: "Temporal",
+  confirmada: "Confirmada",
+  cancelada: "Cancelada",
+  expirada: "Expirada",
 };
 
 export default function AdminCalendar() {
   const { reservations, loadingReservations } = useAdminReservations();
+  const { createNotification } = useNotifications();
   const [search, setSearch] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState<string>("all");
@@ -90,14 +92,19 @@ export default function AdminCalendar() {
     setDate("");
     setStatus("all");
   };
-  const updateReservationStatus = async (
-    reservation: AdminReservation,
-    nextStatus: "confirmed" | "cancelled",
-  ) => {
+  const cancelReservation = async (reservation: AdminReservation) => {
     setUpdatingReservationId(reservation.id);
 
     try {
-      await updateDoc(doc(db, "reservations", reservation.id), { status: nextStatus });
+      await updateDoc(doc(db, "reservations", reservation.id), { status: "cancelada" });
+      await createNotification({
+        userId: reservation.userId,
+        title: "Reserva cancelada",
+        message: "Tu reserva fue cancelada por el administrador.",
+        type: "reservation_cancelled",
+        reservationId: reservation.id,
+        courtId: reservation.courtId,
+      });
     } catch (error) {
       console.error("Error al actualizar reserva:", error);
     } finally {
@@ -259,26 +266,16 @@ export default function AdminCalendar() {
                               >
                                 Ver detalle
                               </Button>
-                              {reservation.status === "pending" && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                                    onClick={() => updateReservationStatus(reservation, "cancelled")}
-                                    disabled={updatingReservationId === reservation.id}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    className="bg-emerald-600 text-white hover:bg-emerald-700"
-                                    onClick={() => updateReservationStatus(reservation, "confirmed")}
-                                    disabled={updatingReservationId === reservation.id}
-                                  >
-                                    Confirmar
-                                  </Button>
-                                </>
+                              {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                                  onClick={() => cancelReservation(reservation)}
+                                  disabled={updatingReservationId === reservation.id}
+                                >
+                                  Cancelar
+                                </Button>
                               )}
                             </div>
                           </TableCell>
@@ -294,8 +291,7 @@ export default function AdminCalendar() {
                       key={reservation.id}
                       reservation={reservation}
                       onView={openDetail}
-                      onConfirm={(item) => updateReservationStatus(item, "confirmed")}
-                      onCancel={(item) => updateReservationStatus(item, "cancelled")}
+                      onCancel={cancelReservation}
                       updating={updatingReservationId === reservation.id}
                     />
                   ))}

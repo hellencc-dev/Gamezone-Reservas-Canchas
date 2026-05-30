@@ -34,7 +34,7 @@ export default function CourtDetail() {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-[#334155]">
-          <p className="font-medium">Loading court details...</p>
+          <p className="font-medium">Cargando detalles de la cancha...</p>
         </div>
       </IonPage>
     );
@@ -45,9 +45,9 @@ export default function CourtDetail() {
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] p-6 text-[#334155] space-y-4">
           <button onClick={() => history.push("/client/courts")} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0">
-            <ArrowLeft className="h-4 w-4" /> Back to courts
+            <ArrowLeft className="h-4 w-4" /> Volver a canchas
           </button>
-          <p className="text-xl font-bold text-center mt-10">Court not found</p>
+          <p className="text-xl font-bold text-center mt-10">Cancha no encontrada</p>
         </div>
       </IonPage>
     );
@@ -56,7 +56,7 @@ export default function CourtDetail() {
   const sportData = sportIconMap[court.sport?.toLowerCase()] || { name: court.sport || "Sport", icon: Calendar };
   const SportIcon = sportData.icon;
 
-  const defaultAmenities = ["Showers", "Free Parking", "Equipment Rental", "Night Lights"];
+  const defaultAmenities = ["Duchas", "Parqueadero gratis", "Alquiler de equipo", "Luces nocturnas"];
   const amenities = court.amenities || defaultAmenities;
 
   return (
@@ -71,7 +71,7 @@ export default function CourtDetail() {
               onClick={() => history.push("/client/courts")} 
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" /> Back to courts
+              <ArrowLeft className="h-4 w-4" /> Volver a canchas
             </button>
 
             <div className="grid lg:grid-cols-3 gap-6">
@@ -101,7 +101,7 @@ export default function CourtDetail() {
                     </span>
                     <span className="inline-flex items-center gap-1 text-muted-foreground">
                       <Star className="h-3 w-3 fill-accent text-accent" />
-                      <span className="font-semibold text-foreground">{court.rating || 5.0}</span> ({court.reviews || 24} reviews)
+                      <span className="font-semibold text-foreground">{court.rating || 5.0}</span> ({court.reviews || 24} reseñas)
                     </span>
                   </div>
                   <h1 className="mt-3 text-3xl md:text-4xl font-display font-bold text-foreground">{court.name}</h1>
@@ -109,13 +109,13 @@ export default function CourtDetail() {
                     <MapPin className="h-4 w-4" /> {court.location}
                   </div>
                   <p className="mt-4 text-muted-foreground leading-relaxed">
-                    {court.description || "Excellent court equipped with high-quality surfaces, optimal lighting systems, and pristine maintenance. Perfect for matches with friends, professional practice sessions, or local tournaments."}
+                    {court.description || "Cancha equipada con superficies de alta calidad, buena iluminación y mantenimiento óptimo. Ideal para partidos con amigos, entrenamientos o torneos locales."}
                   </p>
                 </div>
 
                 {/* Comodidades */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg">Amenities</h3>
+                  <h3 className="font-display font-bold text-lg">Comodidades</h3>
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {amenities.map((a: string) => (
                       <div key={a} className="flex items-center gap-2 text-sm">
@@ -127,7 +127,7 @@ export default function CourtDetail() {
 
                 {/* Ubicación Estática */}
                 <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-                  <h3 className="font-display font-bold text-lg">Location</h3>
+                  <h3 className="font-display font-bold text-lg">Ubicación</h3>
                   <div className="mt-4 aspect-[2/1] rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-muted-foreground relative overflow-hidden">
                     <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(51,65,85,0.4) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
                     <div className="relative h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-brand">
@@ -142,9 +142,9 @@ export default function CourtDetail() {
                 <div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-display font-bold text-primary">${court.price}</span>
-                    <span className="text-sm text-muted-foreground">/ hour</span>
+                    <span className="text-sm text-muted-foreground">/ hora</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Includes equipment, lights, and access to dressing rooms.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Incluye equipamiento, luces y acceso a camerinos.</p>
                 </div>
 
                 <div className="space-y-3">
@@ -152,14 +152,14 @@ export default function CourtDetail() {
                     className="w-full h-12 rounded-xl shadow-brand font-medium text-base cursor-pointer"
                     onClick={() => history.push(`/client/courts/${court.id}/availability`)}
                   >
-                    <Calendar className="mr-2 h-4 w-4" /> Book now
+                    <Calendar className="mr-2 h-4 w-4" /> Reservar ahora
                   </Button>
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-2 text-sm">
-                  <Row label="Free cancellation" value="up to 24h before" />
-                  <Row label="Instant confirmation" value="✓" />
-                  <Row label="Min duration" value="60 min" />
+                  <Row label="Cancelación gratis" value="hasta 24h antes" />
+                  <Row label="Confirmación instantánea" value="sí" />
+                  <Row label="Duración mínima" value="60 min" />
                 </div>
               </Card>
             </div>

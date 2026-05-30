@@ -3,7 +3,6 @@ import { useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import {
   Calendar,
-  CheckCircle2,
   Clock,
   FileText,
   MapPin,
@@ -15,6 +14,7 @@ import {
 
 import { db } from "../../firebase/config";
 import type { AdminReservation } from "../../hooks/useAdminReservations";
+import { useNotifications } from "../../hooks/useNotifications";
 import { Button } from "../../components/ui/button";
 import {
   Dialog,
@@ -67,16 +67,25 @@ export default function ReservationDetailAdmin({
   onOpenChange,
 }: ReservationDetailAdminProps) {
   const [updating, setUpdating] = useState(false);
+  const { createNotification } = useNotifications();
 
   if (!reservation) {
     return null;
   }
 
-  const updateReservationStatus = async (status: "confirmed" | "cancelled") => {
+  const cancelReservation = async () => {
     setUpdating(true);
 
     try {
-      await updateDoc(doc(db, "reservations", reservation.id), { status });
+      await updateDoc(doc(db, "reservations", reservation.id), { status: "cancelada" });
+      await createNotification({
+        userId: reservation.userId,
+        title: "Reserva cancelada",
+        message: "Tu reserva fue cancelada por el administrador.",
+        type: "reservation_cancelled",
+        reservationId: reservation.id,
+        courtId: reservation.courtId,
+      });
       onOpenChange(false);
     } catch (error) {
       console.error("Error al actualizar reserva:", error);
@@ -130,25 +139,15 @@ export default function ReservationDetailAdmin({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={updating}>
             Cerrar
           </Button>
-          {reservation.status === "pending" && (
-            <>
-              <Button
-                variant="destructive"
-                onClick={() => updateReservationStatus("cancelled")}
-                disabled={updating}
-              >
-                <XCircle className="mr-1 h-4 w-4" />
-                Cancelar Reserva
-              </Button>
-              <Button
-                className="bg-emerald-600 hover:bg-emerald-700"
-                onClick={() => updateReservationStatus("confirmed")}
-                disabled={updating}
-              >
-                <CheckCircle2 className="mr-1 h-4 w-4" />
-                Confirmar Reserva
-              </Button>
-            </>
+          {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
+            <Button
+              variant="destructive"
+              onClick={cancelReservation}
+              disabled={updating}
+            >
+              <XCircle className="mr-1 h-4 w-4" />
+              Cancelar reserva
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

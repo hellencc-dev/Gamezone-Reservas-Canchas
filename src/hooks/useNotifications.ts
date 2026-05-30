@@ -3,6 +3,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
   onSnapshot,
   query,
   updateDoc,
@@ -41,6 +42,8 @@ interface CreateNotificationData {
   courtId?: string;
 }
 
+type AdminNotificationData = Omit<CreateNotificationData, "userId">;
+
 const isNotificationType = (type: unknown): type is NotificationType =>
   [
     "reservation_created",
@@ -66,8 +69,10 @@ export function useNotifications() {
 
     setLoading(true);
 
-    const notificationsRef = collection(db, "notifications");
-    const q = query(notificationsRef, where("userId", "==", user.uid));
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", user.uid)
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data: AppNotification[] = snapshot.docs.map((docItem) => {
@@ -115,10 +120,34 @@ export function useNotifications() {
     });
   };
 
-  const markAsRead = async (notificationId: string) => {
-    const notificationRef = doc(db, "notifications", notificationId);
+  const notifyAdmins = async (data: AdminNotificationData) => {
+    const adminsQuery = query(
+      collection(db, "users"),
+      where("role", "==", "admin")
+    );
+    const adminsSnapshot = await getDocs(adminsQuery);
 
-    await updateDoc(notificationRef, {
+    await Promise.all(
+      adminsSnapshot.docs.map((adminDoc) => {
+        const adminData = adminDoc.data();
+        const adminUserId = adminData.uid || adminDoc.id;
+
+        return addDoc(collection(db, "notifications"), {
+          userId: adminUserId,
+          title: data.title,
+          message: data.message,
+          type: data.type,
+          read: false,
+          createdAt: new Date().toISOString(),
+          reservationId: data.reservationId || null,
+          courtId: data.courtId || null,
+        });
+      })
+    );
+  };
+
+  const markAsRead = async (notificationId: string) => {
+    await updateDoc(doc(db, "notifications", notificationId), {
       read: true,
     });
   };
@@ -146,6 +175,7 @@ export function useNotifications() {
     loading,
     unreadCount,
     createNotification,
+    notifyAdmins,
     markAsRead,
     markAllAsRead,
   };
