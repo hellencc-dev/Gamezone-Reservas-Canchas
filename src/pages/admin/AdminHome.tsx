@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import AdminDashboard from "./AdminDashboard";
+import AdminCalendar from "./AdminCalendar";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
@@ -232,7 +233,8 @@ function DashboardView() {
 
 export default function AdminHome() {
   const { hash } = useLocation();
-  const currentView = hash === "#dashboard" ? "dashboard" : "home";
+  const currentView =
+    hash === "#dashboard" ? "dashboard" : hash === "#calendar" ? "calendar" : "home";
 
   return (
     <IonPage>
@@ -274,7 +276,9 @@ export default function AdminHome() {
               </header>
 
               <main className="flex-1 bg-slate-50 p-5 md:p-10">
-                {currentView === "dashboard" ? <DashboardView /> : <HomeView />}
+                {currentView === "dashboard" && <DashboardView />}
+                {currentView === "calendar" && <AdminCalendar />}
+                {currentView === "home" && <HomeView />}
               </main>
             </div>
           </div>
