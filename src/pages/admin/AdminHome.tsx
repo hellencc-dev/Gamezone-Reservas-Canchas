@@ -27,6 +27,7 @@ import ManageAvailability from "./ManageAvailability";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "../../components/ui/sidebar";
+import { useAuth } from "../../hooks/useAuth";
 
 const adminTheme = {
   "--background": "#f8fafc",
@@ -235,6 +236,14 @@ function DashboardView() {
 
 export default function AdminHome() {
   const { hash } = useLocation();
+  const { user } = useAuth();
+  const userInitials =
+    [user?.firstName, user?.lastName]
+      .filter(Boolean)
+      .map((part) => part?.[0])
+      .join("")
+      .toUpperCase() ||
+    (user?.email || "AD").slice(0, 2).toUpperCase();
   const currentView =
     hash === "#dashboard"
       ? "dashboard"
@@ -263,6 +272,14 @@ export default function AdminHome() {
               color: inherit;
               text-decoration: none;
             }
+            .admin-shell input[type="date"] {
+              color-scheme: light;
+            }
+            .admin-shell input[type="date"]::-webkit-calendar-picker-indicator {
+              cursor: pointer;
+              opacity: 1;
+              filter: invert(39%) sepia(89%) saturate(2088%) hue-rotate(213deg) brightness(96%) contrast(92%);
+            }
           `}
         </style>
         <SidebarProvider style={adminTheme}>
@@ -280,7 +297,7 @@ export default function AdminHome() {
                     <Bell className="h-5 w-5" />
                   </Button>
                   <div className="h-11 w-11 rounded-full flex items-center justify-center text-base font-semibold text-white shadow-sm" style={{ background: "var(--brand-gradient)" }}>
-                    AD
+                    {userInitials}
                   </div>
                 </div>
               </header>

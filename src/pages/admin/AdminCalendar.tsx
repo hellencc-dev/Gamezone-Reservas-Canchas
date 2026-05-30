@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { doc, updateDoc } from "firebase/firestore";
 import { CalendarDays, LayoutGrid, List, Search } from "lucide-react";
 
+import { db } from "../../firebase/config";
 import AdminReservationCard from "../../components/admin/AdminReservationCard";
 import StatusBadge from "../../components/admin/StatusBadge";
 import { Button } from "../../components/ui/button";
@@ -45,6 +47,7 @@ export default function AdminCalendar() {
   const [view, setView] = useState<"table" | "cards">("table");
   const [selected, setSelected] = useState<AdminReservation | null>(null);
   const [open, setOpen] = useState(false);
+  const [updatingReservationId, setUpdatingReservationId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return reservations.filter((reservation) => {
@@ -87,6 +90,25 @@ export default function AdminCalendar() {
     setDate("");
     setStatus("all");
   };
+  const updateReservationStatus = async (
+    reservation: AdminReservation,
+    nextStatus: "confirmed" | "cancelled",
+  ) => {
+    setUpdatingReservationId(reservation.id);
+
+    try {
+      await updateDoc(doc(db, "reservations", reservation.id), { status: nextStatus });
+    } catch (error) {
+      console.error("Error al actualizar reserva:", error);
+    } finally {
+      setUpdatingReservationId(null);
+    }
+  };
+
+  const getViewButtonClass = (active: boolean) =>
+    active
+      ? "rounded-xl border-blue-600 bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:text-white"
+      : "rounded-xl border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700";
 
   return (
     <div className="space-y-6">
@@ -99,18 +121,20 @@ export default function AdminCalendar() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant={view === "table" ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            className="rounded-xl shadow-sm"
+            className={getViewButtonClass(view === "table")}
+            style={{ borderRadius: "0.75rem" }}
             onClick={() => setView("table")}
           >
             <List className="mr-1 h-4 w-4" />
             Tabla
           </Button>
           <Button
-            variant={view === "cards" ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            className="rounded-xl shadow-sm"
+            className={getViewButtonClass(view === "cards")}
+            style={{ borderRadius: "0.75rem" }}
             onClick={() => setView("cards")}
           >
             <LayoutGrid className="mr-1 h-4 w-4" />
@@ -227,13 +251,36 @@ export default function AdminCalendar() {
                             ${reservation.totalPrice.toLocaleString("es-CO")}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openDetail(reservation)}
-                            >
-                              Ver detalle
-                            </Button>
+                            <div className="flex flex-wrap justify-end gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openDetail(reservation)}
+                              >
+                                Ver detalle
+                              </Button>
+                              {reservation.status === "pending" && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                                    onClick={() => updateReservationStatus(reservation, "cancelled")}
+                                    disabled={updatingReservationId === reservation.id}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="bg-emerald-600 text-white hover:bg-emerald-700"
+                                    onClick={() => updateReservationStatus(reservation, "confirmed")}
+                                    disabled={updatingReservationId === reservation.id}
+                                  >
+                                    Confirmar
+                                  </Button>
+                                </>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -247,6 +294,9 @@ export default function AdminCalendar() {
                       key={reservation.id}
                       reservation={reservation}
                       onView={openDetail}
+                      onConfirm={(item) => updateReservationStatus(item, "confirmed")}
+                      onCancel={(item) => updateReservationStatus(item, "cancelled")}
+                      updating={updatingReservationId === reservation.id}
                     />
                   ))}
                 </div>
