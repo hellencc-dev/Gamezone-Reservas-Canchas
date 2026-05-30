@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { IonPage, IonContent } from "@ionic/react";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
@@ -6,23 +6,22 @@ import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { useCourts } from "../../hooks/useCourts";
 import { useAuth } from "../../hooks/useAuth";
+import { useAvailability } from "../../hooks/useAvailability";
 import { db } from "../../firebase/config";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { cn } from "../../lib/utils";
+import {
+  generateThirtyMinuteSlots,
+  getAvailabilityForDate,
+  getSlotStatus as getAvailabilitySlotStatus,
+  slotFitsIntervals,
+} from "../../helpers/availabilityHelpers";
 
-// Lista de horarios del prototipo de Lovable
-const TIME_SLOTS = [
-  "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", 
-  "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", 
-  "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM"
-];
-
-// Generador de semanas dinámicas basado en el prototipo
 function getWeek(offset: number) {
-  const now = new Date(); // Usa la fecha actual real en producción
+  const now = new Date(); 
   now.setDate(now.getDate() + offset * 7);
   const start = new Date(now);
-  start.setDate(start.getDate() - start.getDay()); // Inicia en Domingo
+  start.setDate(start.getDate() - start.getDay()); 
   return Array.from({ length: 7 }).map((_, i) => {
     const d = new Date(start);
     d.setDate(start.getDate() + i);
@@ -31,7 +30,11 @@ function getWeek(offset: number) {
 }
 
 function iso(d: Date) {
-  return d.toISOString().slice(0, 10); // Formato estándar: "YYYY-MM-DD"
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 export default function CourtAvailability() {
@@ -39,15 +42,14 @@ export default function CourtAvailability() {
   const history = useHistory();
   const { user } = useAuth();
   const { courts, loading } = useCourts();
+  const { availability, specialDates, loadingAvailability } = useAvailability(courtId);
 
   const court = courts?.find((c) => c.id === courtId);
 
-  // Estados de navegación y selección
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string>(iso(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   
-  // Estado para almacenar las reservas reales activas de este día desde Firebase
   const [dayReservations, setDayReservations] = useState<any[]>([]);
 
   const week = getWeek(weekOffset);
@@ -63,10 +65,10 @@ export default function CourtAvailability() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const resList: any[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
+      snapshot.forEach((reservationDoc) => {
+        const data = reservationDoc.data();
         if (["confirmada", "confirmed", "temporal", "temporary"].includes(data.status)) {
-          resList.push(data);
+          resList.push({ id: reservationDoc.id, ...data });
         }
       });
       setDayReservations(resList);
@@ -75,12 +77,29 @@ export default function CourtAvailability() {
     return () => unsubscribe();
   }, [courtId, selectedDate]);
 
-  // Función inteligente para determinar el estado de cada celda en tiempo real
-  const getSlotStatus = (slot: string) => {
-    const existingRes = dayReservations.find((r) => r.startTime === slot);
-    if (!existingRes) return "available";
-    return existingRes.userId === user?.uid ? "mine" : "busy";
-  };
+  const availabilityDecision = useMemo(
+    () =>
+      getAvailabilityForDate({
+        date: selectedDate,
+        weeklyAvailability: availability,
+        specialDates,
+        courtActive: court?.active,
+        courtStatus: court?.status,
+      }),
+    [availability, court?.active, court?.status, selectedDate, specialDates]
+  );
+
+  const timeSlots = useMemo(() => {
+    if (!availabilityDecision.available) return [];
+
+    return generateThirtyMinuteSlots(availabilityDecision.intervals).filter((slot) =>
+      slotFitsIntervals(slot, 30, availabilityDecision.intervals)
+    );
+  }, [availabilityDecision]);
+
+  const availableSlots = timeSlots.filter(
+    (slot) => getAvailabilitySlotStatus(slot, 30, dayReservations, user?.uid) === "available"
+  );
 
   const handleContinue = () => {
     if (!selectedSlot) return;
@@ -90,7 +109,7 @@ export default function CourtAvailability() {
     });
   };
 
-  if (loading) {
+  if (loading || loadingAvailability) {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
@@ -134,7 +153,7 @@ export default function CourtAvailability() {
               {/* Selector de Semana */}
               <div className="flex items-center justify-between">
                 <h3 className="font-display font-bold text-lg capitalize">
-                  {week[0].toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+                  {week[0].toLocaleDateString("es-CO", { month: "long", year: "numeric" })}
                 </h3>
                 <div className="flex gap-1">
                   <Button variant="outline" size="icon" className="rounded-xl cursor-pointer" onClick={() => setWeekOffset(weekOffset - 1)}>
@@ -163,7 +182,7 @@ export default function CourtAvailability() {
                       )}
                     >
                       <div className={cn("text-[10px] uppercase tracking-wider font-semibold", active ? "opacity-80" : "text-muted-foreground")}>
-                        {d.toLocaleDateString(undefined, { weekday: "short" })}
+                        {d.toLocaleDateString("es-CO", { weekday: "short" })}
                       </div>
                       <div className="text-lg font-display font-bold mt-1">{d.getDate()}</div>
                     </button>
@@ -182,29 +201,43 @@ export default function CourtAvailability() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {TIME_SLOTS.map((slot) => {
-                    const status = getSlotStatus(slot);
-                    const active = selectedSlot === slot;
-                    const disabled = status !== "available";
-                    return (
-                      <button
-                        key={slot}
-                        disabled={disabled}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={cn(
-                          "rounded-xl border py-3 text-sm font-medium transition relative",
-                          active && "ring-2 ring-primary ring-offset-2 z-10",
-                          status === "available" && "bg-success-soft text-success border-success/20 hover:bg-success/15 cursor-pointer",
-                          status === "busy" && "bg-danger-soft text-danger border-danger/20 opacity-60 cursor-not-allowed",
-                          status === "mine" && "bg-warning-soft text-warning border-warning/30 cursor-not-allowed",
-                        )}
-                      >
-                        {slot}
-                      </button>
-                    );
-                  })}
+                <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600">
+                  {availabilityDecision.reason}
                 </div>
+
+                {!availabilityDecision.available ? (
+                  <div className="mt-4 rounded-2xl border border-dashed border-border bg-background p-8 text-center text-sm text-muted-foreground">
+                    No disponible para esta fecha.
+                  </div>
+                ) : timeSlots.length === 0 || availableSlots.length === 0 ? (
+                  <div className="mt-4 rounded-2xl border border-dashed border-border bg-background p-8 text-center text-sm text-muted-foreground">
+                    No hay horarios disponibles para esta fecha.
+                  </div>
+                ) : (
+                  <div className="mt-4 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                    {timeSlots.map((slot) => {
+                      const status = getAvailabilitySlotStatus(slot, 30, dayReservations, user?.uid);
+                      const active = selectedSlot === slot;
+                      const disabled = status !== "available";
+                      return (
+                        <button
+                          key={slot}
+                          disabled={disabled}
+                          onClick={() => setSelectedSlot(slot)}
+                          className={cn(
+                            "rounded-xl border py-3 text-sm font-medium transition relative",
+                            active && "ring-2 ring-primary ring-offset-2 z-10",
+                            status === "available" && "bg-success-soft text-success border-success/20 hover:bg-success/15 cursor-pointer",
+                            status === "busy" && "bg-danger-soft text-danger border-danger/20 opacity-60 cursor-not-allowed",
+                            status === "mine" && "bg-warning-soft text-warning border-warning/30 cursor-not-allowed",
+                          )}
+                        >
+                          {slot}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Barra Inferior de Acción */}

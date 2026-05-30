@@ -13,6 +13,12 @@ import {
 
 import { db } from "../firebase/config";
 
+function removeUndefinedFields<T extends Record<string, unknown>>(input: T) {
+  return Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== undefined)
+  ) as T;
+}
+
 export interface Availability {
   id: string;
   courtId: string;
@@ -37,6 +43,8 @@ export interface SpecialDate {
   date: string;
   available: boolean;
   note: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface SpecialDateInput {
@@ -44,6 +52,8 @@ export interface SpecialDateInput {
   date: string;
   available: boolean;
   note: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export function useAvailability(courtId?: string) {
@@ -140,7 +150,7 @@ export function useAvailability(courtId?: string) {
   }, []);
 
   const createSpecialDate = useCallback(async (input: SpecialDateInput) => {
-    await addDoc(collection(db, "specialDates"), input);
+    await addDoc(collection(db, "specialDates"), removeUndefinedFields(input as unknown as Record<string, unknown>));
   }, []);
 
   const updateSpecialDate = useCallback(async (specialDateId: string, input: SpecialDateInput) => {

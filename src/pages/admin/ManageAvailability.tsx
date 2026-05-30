@@ -60,6 +60,11 @@ export default function ManageAvailability() {
   const [specialDate, setSpecialDate] = useState("");
   const [specialAvailable, setSpecialAvailable] = useState(false);
   const [specialNote, setSpecialNote] = useState("");
+  const [specialStartTime, setSpecialStartTime] = useState("08:00");
+  const [specialEndTime, setSpecialEndTime] = useState("22:00");
+  const [usualStartTime, setUsualStartTime] = useState("08:00");
+  const [usualEndTime, setUsualEndTime] = useState("22:00");
+  const [applyingUsualHours, setApplyingUsualHours] = useState(false);
 
   const activeCourtId = selectedCourtId || courts[0]?.id || "";
   const selectedCourt = courts.find((court) => court.id === activeCourtId);
@@ -102,6 +107,34 @@ export default function ManageAvailability() {
     setFormOpen(false);
   };
 
+  const handleApplyUsualHours = async () => {
+    if (!activeCourtId || !usualStartTime || !usualEndTime || usualEndTime <= usualStartTime) {
+      return;
+    }
+
+    setApplyingUsualHours(true);
+    try {
+      await Promise.all(
+        DAYS.map((day) => {
+          const existing = availability.find((item) => item.dayOfWeek === day.value);
+          const payload: AvailabilityInput = {
+            courtId: activeCourtId,
+            dayOfWeek: day.value,
+            startTime: usualStartTime,
+            endTime: usualEndTime,
+            active: true,
+          };
+
+          return existing
+            ? updateAvailability(existing.id, payload)
+            : createAvailability(payload);
+        })
+      );
+    } finally {
+      setApplyingUsualHours(false);
+    }
+  };
+
   const openCreate = () => {
     setEditingAvailability(null);
     setFormOpen(true);
@@ -124,12 +157,16 @@ export default function ManageAvailability() {
       date: specialDate,
       available: specialAvailable,
       note: specialNote.trim(),
+      startTime: specialAvailable ? specialStartTime : undefined,
+      endTime: specialAvailable ? specialEndTime : undefined,
     };
 
     await createSpecialDate(payload);
     setSpecialDate("");
     setSpecialAvailable(false);
     setSpecialNote("");
+    setSpecialStartTime("08:00");
+    setSpecialEndTime("22:00");
   };
 
   return (
@@ -175,6 +212,44 @@ export default function ManageAvailability() {
         <StatCard label="Horarios activos" value={String(activeSlots)} hint="bloques disponibles" />
         <StatCard label="Fechas especiales" value={String(specialDates.length)} hint={`${closures} bloqueos`} />
       </div>
+
+      <Card className="border-border/60">
+        <CardHeader>
+          <CardTitle className="text-xl">Horario habitual</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Aplica un horario normal a todos los días de la cancha. Luego puedes editar un día específico si lo necesitas.
+          </p>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <div className="space-y-2">
+            <Label>Hora inicial</Label>
+            <Input
+              type="time"
+              value={usualStartTime}
+              onChange={(event) => setUsualStartTime(event.target.value)}
+              className="rounded-xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Hora final</Label>
+            <Input
+              type="time"
+              value={usualEndTime}
+              onChange={(event) => setUsualEndTime(event.target.value)}
+              className="rounded-xl"
+            />
+          </div>
+          <Button
+            type="button"
+            className="rounded-xl"
+            disabled={!activeCourtId || applyingUsualHours || usualEndTime <= usualStartTime}
+            onClick={handleApplyUsualHours}
+          >
+            <Save className="h-4 w-4" />
+            {applyingUsualHours ? "Aplicando..." : "Aplicar a todos"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {loading ? (
         <EmptyState text="Cargando disponibilidad..." />
@@ -278,7 +353,7 @@ export default function ManageAvailability() {
               </CardHeader>
               <CardContent className="space-y-5">
                 <form
-                  className="grid gap-4 rounded-xl border border-dashed border-border/80 bg-muted/30 p-4 md:grid-cols-[180px_1fr_auto]"
+                  className="grid gap-4 rounded-xl border border-dashed border-border/80 bg-muted/30 p-4 md:grid-cols-2 xl:grid-cols-[160px_1fr_130px_130px_auto]"
                   onSubmit={handleSpecialDateSubmit}
                 >
                   <div className="space-y-2">
@@ -299,13 +374,37 @@ export default function ManageAvailability() {
                       onChange={(event) => setSpecialNote(event.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Hora inicial</Label>
+                    <Input
+                      type="time"
+                      className="rounded-xl"
+                      value={specialStartTime}
+                      onChange={(event) => setSpecialStartTime(event.target.value)}
+                      disabled={!specialAvailable}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Hora final</Label>
+                    <Input
+                      type="time"
+                      className="rounded-xl"
+                      value={specialEndTime}
+                      onChange={(event) => setSpecialEndTime(event.target.value)}
+                      disabled={!specialAvailable}
+                    />
+                  </div>
                   <div className="flex items-end gap-3">
                     <div className="flex h-10 items-center gap-2 rounded-xl border border-border bg-background px-3">
                       <Ban className="h-4 w-4 text-rose-600" />
                       <Label className="text-sm">Disponible</Label>
                       <Switch checked={specialAvailable} onCheckedChange={setSpecialAvailable} />
                     </div>
-                    <Button type="submit" className="rounded-xl" disabled={!specialDate}>
+                    <Button
+                      type="submit"
+                      className="rounded-xl"
+                      disabled={!specialDate || (specialAvailable && specialEndTime <= specialStartTime)}
+                    >
                       <Save className="h-4 w-4" />
                       Guardar
                     </Button>
@@ -323,7 +422,12 @@ export default function ManageAvailability() {
                       >
                         <div>
                           <p className="font-semibold text-foreground">{item.date}</p>
-                          <p className="text-sm text-muted-foreground">{item.note || "Sin observaciones"}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.note || "Sin observaciones"}
+                            {item.available && item.startTime && item.endTime
+                              ? ` · ${item.startTime} - ${item.endTime}`
+                              : ""}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge

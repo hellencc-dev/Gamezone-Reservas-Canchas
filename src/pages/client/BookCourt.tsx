@@ -9,13 +9,29 @@ import { Label } from "../../components/ui/label";
 import { useCourts } from "../../hooks/useCourts";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useAvailability } from "../../hooks/useAvailability";
 import { db } from "../../firebase/config";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import { cn } from "../../lib/utils";
+import {
+  formatMinutesToDisplay,
+  getAvailabilityForDate,
+  getOverlappingReservations,
+  parseTimeToMinutes,
+  slotFitsIntervals,
+} from "../../helpers/availabilityHelpers";
 
 interface NavigationState {
   date: string;
   slot: string;
+}
+
+function getLocalIsoDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 const sportIconMap: Record<string, { name: string; icon: any }> = {
@@ -32,8 +48,9 @@ export default function BookCourt() {
   const { user } = useAuth();
   const { courts, loading } = useCourts();
   const { createNotification, notifyAdmins } = useNotifications();
+  const { availability, specialDates, loadingAvailability } = useAvailability(courtId);
 
-  const selectedDate = location.state?.date || new Date().toISOString().slice(0, 10);
+  const selectedDate = location.state?.date || getLocalIsoDate();
   const selectedSlot = location.state?.slot || "06:00 PM";
 
   const court = courts?.find((c) => c.id === courtId);
@@ -53,19 +70,43 @@ export default function BookCourt() {
     setSubmitting(true);
 
     try {
-      const [time, modifier] = selectedSlot.split(" ");
-      let [hours, minutes] = time.split(":").map(Number);
-      if (modifier === "PM" && hours < 12) hours += 12;
-      if (modifier === "AM" && hours === 12) hours = 0;
+      const availabilityDecision = getAvailabilityForDate({
+        date: selectedDate,
+        weeklyAvailability: availability,
+        specialDates,
+        courtActive: court?.active,
+        courtStatus: court?.status,
+      });
 
-      const dateObj = new Date();
-      dateObj.setHours(hours, minutes + duration);
-      
-      const endHours = dateObj.getHours();
-      const endMinutes = dateObj.getMinutes().toString().padStart(2, "0");
-      const ampm = endHours >= 12 ? "PM" : "AM";
-      const displayHours = endHours % 12 === 0 ? 12 : endHours % 12;
-      const endTimeFormatted = `${displayHours}:${endMinutes} ${ampm}`;
+      if (!availabilityDecision.available) {
+        alert(availabilityDecision.reason || "La cancha no está disponible para esta fecha.");
+        return;
+      }
+
+      if (!slotFitsIntervals(selectedSlot, duration, availabilityDecision.intervals)) {
+        alert("La duración seleccionada no cabe dentro del horario disponible.");
+        return;
+      }
+
+      const reservationsQuery = query(
+        collection(db, "reservations"),
+        where("courtId", "==", courtId),
+        where("date", "==", selectedDate)
+      );
+      const reservationsSnapshot = await getDocs(reservationsQuery);
+      const reservations = reservationsSnapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+      const overlaps = getOverlappingReservations(selectedSlot, duration, reservations);
+
+      if (overlaps.length > 0) {
+        alert("Este horario se cruza con otra reserva. Elige otro horario disponible.");
+        return;
+      }
+
+      const startMinutes = parseTimeToMinutes(selectedSlot);
+      const endTimeFormatted =
+        startMinutes === null ? selectedSlot : formatMinutesToDisplay(startMinutes + duration);
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 5 * 60 * 1000);
 
       const newReservation = {
         userId: user.uid,
@@ -78,10 +119,11 @@ export default function BookCourt() {
         notes: notes,
         status: "temporal",
         totalPrice: grandTotal,
-        createdAt: new Date()
+        createdAt: now,
+        expiresAt,
+        lockedUntil: expiresAt,
       };
 
-      // Guardamos la reserva y obtenemos su referencia
       const docRef = await addDoc(collection(db, "reservations"), newReservation);
       
       await createNotification({
@@ -101,7 +143,6 @@ export default function BookCourt() {
         courtId: courtId
       });
       
-      // CAMBIO CLAVE: Redirigimos al nuevo path limpio mandando el ID en el estado
       history.push({
         pathname: "/client/reserve/pending",
         state: { reservationId: docRef.id }
@@ -115,7 +156,7 @@ export default function BookCourt() {
     }
   };
 
-  if (loading) {
+  if (loading || loadingAvailability) {
     return (
       <div className="w-full min-h-screen bg-[#f8fafc] flex items-center justify-center text-muted-foreground">
         Cargando detalles de la reserva...

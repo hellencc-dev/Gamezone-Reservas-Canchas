@@ -17,6 +17,11 @@ export interface ReservationFirebase {
   playersCount?: number;
   notes?: string;
   createdAt?: any;
+  expiresAt?: any;
+  lockedUntil?: any;
+  confirmedAt?: any;
+  cancelledAt?: any;
+  expiredAt?: any;
 }
 
 export function useReservations() {

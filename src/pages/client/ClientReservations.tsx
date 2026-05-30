@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { IonPage, IonContent } from "@ionic/react";
-import { Calendar as CalendarIcon, LayoutGrid, MapPin, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, LayoutGrid, MapPin, Plus } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { StatusBadge } from "../../components/status-badge";
@@ -27,7 +27,6 @@ export default function ClientReservations() {
   const [view, setView] = useState<"list" | "calendar">("list");
   const [tab, setTab] = useState<FilterTab>("all");
 
-  // Filtrado reactivo basado en la pestaña activa
   const filtered = reservations.filter((r) => (tab === "all" ? true : r.status === tab));
 
   const loading = loadingReservations || loadingCourts;
@@ -119,9 +118,9 @@ export default function ClientReservations() {
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-display font-semibold truncate text-foreground text-base md:text-lg">{c?.name || "GameZone Court"}</h3>
+                          <h3 className="font-display font-semibold truncate text-foreground text-base md:text-lg">{c?.name || "Cancha GameZone"}</h3>
                           <div className="text-xs text-muted-foreground flex items-center gap-3 mt-1">
-                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {c?.location || "Main Complex"}</span>
+                            <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {c?.location || "GameZone"}</span>
                             <span>·</span>
                             <span className="font-mono text-[11px]">GZ-{r.id.slice(0, 5).toUpperCase()}</span>
                           </div>
@@ -138,7 +137,7 @@ export default function ClientReservations() {
               </div>
             )
           ) : (
-            <CalendarView reservations={reservations} />
+            <CalendarView reservations={filtered} />
           )}
 
         </div>
@@ -149,23 +148,53 @@ export default function ClientReservations() {
 
 function CalendarView({ reservations }: { reservations: any[] }) {
   const history = useHistory();
-  const start = new Date(2026, 4, 1); // Mayo 2026 como base fija
-  const days = Array.from({ length: 35 }).map((_, i) => {
-    const d = new Date(start);
-    d.setDate(d.getDate() - start.getDay() + i);
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
+
+  const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+  const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+  const gridStart = new Date(monthStart);
+  gridStart.setDate(monthStart.getDate() - monthStart.getDay());
+  const totalCells = Math.ceil((monthEnd.getDate() + monthStart.getDay()) / 7) * 7;
+
+  const days = Array.from({ length: totalCells }).map((_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
     return d;
   });
 
+  const goToPreviousMonth = () => {
+    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentMonth((month) => new Date(month.getFullYear(), month.getMonth() + 1, 1));
+  };
+
   return (
     <Card className="p-6 rounded-2xl border-border bg-card shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-bold text-lg text-foreground">May 2026</h3>
-        <div className="text-xs text-muted-foreground font-medium">
-          {reservations.filter(r => r.status === "confirmada").length} reservas confirmadas
+      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="font-display font-bold text-lg text-foreground capitalize">
+            {currentMonth.toLocaleDateString("es-CO", { month: "long", year: "numeric" })}
+          </h3>
+          <div className="text-xs text-muted-foreground font-medium">
+            {reservations.length} reserva{reservations.length === 1 ? "" : "s"} en el filtro actual
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" className="rounded-xl" onClick={goToPreviousMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="rounded-xl" onClick={goToNextMonth}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-7 gap-1 text-xs text-muted-foreground font-semibold text-center border-b border-border pb-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+        {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
@@ -176,30 +205,39 @@ function CalendarView({ reservations }: { reservations: any[] }) {
           const day = String(d.getDate()).padStart(2, "0");
           const cellIsoDate = `${year}-${month}-${day}`;
           
-          const dayReservation = reservations.find(
-            (x) => x.date === cellIsoDate && x.status === "confirmada"
-          );
+          const dayReservations = reservations.filter((x) => x.date === cellIsoDate);
+          const primaryReservation = dayReservations[0];
           
-          const out = d.getMonth() !== 4;
+          const out = d.getMonth() !== currentMonth.getMonth();
 
           return (
             <div
               key={i}
-              onClick={() => dayReservation && history.push(`/client/reservations/${dayReservation.id}`)}
+              onClick={() => primaryReservation && history.push(`/client/reservations/${primaryReservation.id}`)}
               className={cn(
-                "aspect-square rounded-lg border p-1.5 text-xs relative flex flex-col justify-between transition",
+                "min-h-24 rounded-lg border p-1.5 text-xs relative flex flex-col gap-1 transition",
                 out ? "opacity-30 border-transparent bg-transparent" : "border-border bg-background",
-                dayReservation && "bg-primary-soft border-primary/30 cursor-pointer hover:border-primary/60",
+                primaryReservation && "bg-primary-soft border-primary/30 cursor-pointer hover:border-primary/60",
               )}
             >
-              <div className={cn("font-bold text-muted-foreground", dayReservation && "text-primary")}>
+              <div className={cn("font-bold text-muted-foreground", primaryReservation && "text-primary")}>
                 {d.getDate()}
               </div>
-              {dayReservation && (
-                <div className="w-full truncate text-[9px] font-bold text-primary bg-primary-soft rounded px-1 py-0.5 mt-1 text-center">
-                  {dayReservation.startTime}
-                </div>
-              )}
+              <div className="space-y-1">
+                {dayReservations.slice(0, 2).map((reservation) => (
+                  <div
+                    key={reservation.id}
+                    className="w-full truncate rounded bg-white/80 px-1 py-0.5 text-[10px] font-bold text-primary shadow-sm"
+                  >
+                    {reservation.startTime}
+                  </div>
+                ))}
+                {dayReservations.length > 2 && (
+                  <div className="text-[10px] font-semibold text-primary">
+                    +{dayReservations.length - 2} más
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
