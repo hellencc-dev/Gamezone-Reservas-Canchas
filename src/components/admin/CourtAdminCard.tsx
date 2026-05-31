@@ -15,7 +15,7 @@ export default function CourtAdminCard({ court, onEdit, onDelete }: CourtAdminCa
   const image = court.imageUrl || court.image;
 
   return (
-    <Card className="overflow-hidden border-border/60 transition-all hover:-translate-y-0.5 hover:shadow-lg">
+    <Card className="overflow-hidden rounded-2xl border-border/60 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#0052FF]/25 hover:shadow-elevated">
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
         {image ? (
           <img
@@ -65,14 +65,14 @@ export default function CourtAdminCard({ court, onEdit, onDelete }: CourtAdminCa
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          <Button size="sm" variant="outline" className="flex-1" onClick={() => onEdit?.(court)}>
+          <Button size="sm" variant="outline" className="flex-1 rounded-xl" onClick={() => onEdit?.(court)}>
             <Pencil className="h-3.5 w-3.5" />
             Editar
           </Button>
           <Button
             size="sm"
-            variant="outline"
-            className="flex-1 border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+            variant="destructive"
+            className="flex-1 rounded-xl"
             onClick={() => onDelete?.(court)}
           >
             <Trash2 className="h-3.5 w-3.5" />

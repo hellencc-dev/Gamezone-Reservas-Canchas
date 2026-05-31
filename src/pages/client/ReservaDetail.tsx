@@ -101,7 +101,7 @@ export default function ReservationDetail() {
           <div className="max-w-4xl mx-auto space-y-6">
             <button
               onClick={() => history.push("/client/reservations")}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 transition-colors"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
               <ArrowLeft className="h-4 w-4" /> Volver a reservas
             </button>
@@ -230,10 +230,10 @@ export default function ReservationDetail() {
                     {reservation.status === "confirmada" && (
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         disabled={cancelling}
                         onClick={handleCancelReservation}
-                        className="w-full rounded-xl h-11 font-medium border-danger/40 text-danger hover:bg-danger-soft hover:text-danger cursor-pointer disabled:opacity-50"
+                        className="w-full rounded-xl h-11 font-medium cursor-pointer disabled:opacity-50"
                       >
                         <X className="mr-2 h-4 w-4" /> {cancelling ? "Cancelando..." : "Cancelar reserva"}
                       </Button>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
-import { Calendar, Clock, MapPin, User, Users, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, MapPin, User, Users, XCircle } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 import { IonContent, IonPage } from "@ionic/react";
 import { db } from "../../firebase/config";
@@ -78,8 +78,9 @@ export default function AdminReservationDetail() {
           <main className="mx-auto max-w-5xl space-y-6">
             <button
               onClick={() => history.push("/admin/reservations")}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
+              <ArrowLeft className="h-4 w-4" />
               Volver a reservas
             </button>
 
@@ -134,14 +135,14 @@ export default function AdminReservationDetail() {
                   Acciones administrativas
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  El administrador puede cancelar reservas, pero no confirma pagos.
+                  Revisa el estado de la reserva y aplica cambios cuando sea necesario.
                 </p>
                 {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
                   <Button
-                    variant="outline"
+                    variant="destructive"
                     disabled={cancelling}
                     onClick={cancelReservation}
-                    className="mt-5 w-full rounded-xl border-danger/40 text-danger hover:bg-danger-soft hover:text-danger"
+                    className="mt-5 w-full rounded-xl"
                   >
                     <XCircle className="mr-2 h-4 w-4" />
                     {cancelling ? "Cancelando..." : "Cancelar reserva"}

@@ -150,7 +150,7 @@ export default function AdminDashboard() {
             type="button"
             aria-label="Cerrar sesion"
             onClick={handleLogout}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/80 transition hover:bg-[#24344d] hover:text-white group-data-[collapsible=icon]:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 shadow-sm transition hover:-translate-y-0.5 hover:border-rose-300/30 hover:bg-rose-500/15 hover:text-white group-data-[collapsible=icon]:hidden"
           >
             <LogOut className="h-4 w-4" />
           </button>

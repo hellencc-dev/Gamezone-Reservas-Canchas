@@ -93,7 +93,7 @@ export default function ManageCourts() {
             Agrega, edita y controla la disponibilidad de todas las canchas.
           </p>
         </div>
-        <Button onClick={openCreate}>
+        <Button onClick={openCreate} className="rounded-xl">
           <Plus className="h-4 w-4" />
           Agregar cancha
         </Button>
@@ -105,14 +105,14 @@ export default function ManageCourts() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar canchas..."
-              className="pl-9"
+              className="h-11 rounded-xl bg-white pl-9 shadow-sm"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
 
           <Select value={sport} onValueChange={setSport}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11 rounded-xl bg-white shadow-sm">
               <SelectValue placeholder="Deporte" />
             </SelectTrigger>
             <SelectContent>
@@ -126,7 +126,7 @@ export default function ManageCourts() {
           </Select>
 
           <Select value={active} onValueChange={setActive}>
-            <SelectTrigger>
+            <SelectTrigger className="h-11 rounded-xl bg-white shadow-sm">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>

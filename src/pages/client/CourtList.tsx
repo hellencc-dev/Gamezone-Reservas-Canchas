@@ -1,35 +1,71 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom"; 
 // Importamos IonPage para salvar el enrutador de Ionic
 import { IonPage } from "@ionic/react"; 
-import { Filter, Search, SlidersHorizontal, Trophy, Target, CalendarCheck } from "lucide-react";
+import { ArrowLeft, Filter, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { CourtCard } from "../../components/CourtCard";
 import { useCourts } from "../../hooks/useCourts";
 import { cn } from "../../lib/utils";
 
-const sportsData = [
-  { id: "futbol", name: "Fútbol", icon: Trophy },
-  { id: "tenis", name: "Tenis", icon: Target },
-  { id: "baloncesto", name: "Baloncesto", icon: CalendarCheck },
-];
+function normalizeSportKey(value?: string) {
+  return (value || "")
+    .trim()
+    .toLocaleLowerCase("es-CO")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function formatSportName(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toLocaleUpperCase("es-CO") + word.slice(1).toLocaleLowerCase("es-CO"))
+    .join(" ");
+}
 
 export default function CourtsPage() {
   const { courts, loading } = useCourts();
   const history = useHistory();
   
   const location = useLocation<{ selectedSport?: string }>();
-  const initialSport = location.state?.selectedSport || "all";
+  const initialSport = normalizeSportKey(location.state?.selectedSport) || "all";
 
   const [sport, setSport] = useState<string | "all">(initialSport);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"price" | "rating">("rating");
 
+  const sportOptions = useMemo(() => {
+    const options = new Map<string, string>();
+
+    (courts || []).forEach((court) => {
+      const rawSport = court.sport?.trim();
+      const sportKey = normalizeSportKey(rawSport);
+
+      if (rawSport && sportKey && !options.has(sportKey)) {
+        options.set(sportKey, formatSportName(rawSport));
+      }
+    });
+
+    return Array.from(options, ([id, name]) => ({ id, name })).sort((a, b) =>
+      a.name.localeCompare(b.name, "es")
+    );
+  }, [courts]);
+
+  useEffect(() => {
+    if (loading || sport === "all") return;
+
+    const sportExists = sportOptions.some((option) => option.id === sport);
+    if (!sportExists) {
+      setSport("all");
+    }
+  }, [loading, sport, sportOptions]);
+
   const filtered = (courts || [])
     .filter((c) => {
       if (sport === "all") return true;
-      return c.sport?.toLowerCase() === sport.toLowerCase();
+      return normalizeSportKey(c.sport) === sport;
     })
     .filter((c) => {
       if (!query) return true;
@@ -53,9 +89,17 @@ export default function CourtsPage() {
           {/* Encabezado y barra de búsqueda */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
+              <button
+                type="button"
+                onClick={() => history.push("/client")}
+                className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al inicio
+              </button>
               <h1 className="text-3xl font-display font-bold">Encuentra tu cancha</h1>
               <p className="text-muted-foreground mt-1">
-                {loading ? "Cargando canchas disponibles..." : `${filtered.length} canchas disponibles en ${sportsData.length} deportes.`}
+                {loading ? "Cargando canchas disponibles..." : `${filtered.length} canchas disponibles en ${sportOptions.length} deportes.`}
               </p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
@@ -77,16 +121,13 @@ export default function CourtsPage() {
           {/* Sport chips */}
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             <Chip active={sport === "all"} onClick={() => setSport("all")}>
-              <Filter className="h-3.5 w-3.5" /> Todos los deportes
+              <Filter className="h-3.5 w-3.5" /> Todos
             </Chip>
-            {sportsData.map((s) => {
-              const Icon = s.icon;
-              return (
-                <Chip key={s.id} active={sport === s.id} onClick={() => setSport(s.id)}>
-                  <Icon className="h-3.5 w-3.5" /> {s.name}
-                </Chip>
-              );
-            })}
+            {sportOptions.map((s) => (
+              <Chip key={s.id} active={sport === s.id} onClick={() => setSport(s.id)}>
+                {s.name}
+              </Chip>
+            ))}
           </div>
 
           {/* Barra de conteo de resultados y ordenamiento */}
@@ -150,8 +191,8 @@ function Chip({
       className={cn(
         "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border transition cursor-pointer",
         active
-          ? "bg-primary text-primary-foreground border-primary shadow-brand"
-          : "bg-card text-foreground border-border hover:border-primary/40",
+          ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
+          : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]",
       )}
     >
       {children}

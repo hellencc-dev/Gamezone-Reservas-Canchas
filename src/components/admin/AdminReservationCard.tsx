@@ -52,15 +52,15 @@ export default function AdminReservationCard({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 pt-2">
-          <Button size="sm" variant="outline" onClick={() => onView?.(reservation)}>
+          <Button size="sm" variant="outline" className="rounded-xl" onClick={() => onView?.(reservation)}>
             <Eye className="mr-1 h-4 w-4" />
             Ver detalle
           </Button>
           {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
             <Button
               size="sm"
-              variant="outline"
-              className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+              variant="destructive"
+              className="rounded-xl"
               onClick={() => onCancel?.(reservation)}
               disabled={updating}
             >

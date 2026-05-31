@@ -136,12 +136,13 @@ export default function ReservationDetailAdmin({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={updating}>
+          <Button variant="outline" className="rounded-xl" onClick={() => onOpenChange(false)} disabled={updating}>
             Cerrar
           </Button>
           {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
             <Button
               variant="destructive"
+              className="rounded-xl"
               onClick={cancelReservation}
               disabled={updating}
             >

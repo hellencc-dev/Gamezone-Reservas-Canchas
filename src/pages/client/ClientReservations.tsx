@@ -37,7 +37,7 @@ export default function ClientReservations() {
         <div className="w-full min-h-screen text-[#334155] p-6 md:p-10 space-y-6">
           <button
             onClick={() => history.push("/client")}
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
           >
             Volver al inicio
           </button>
@@ -53,8 +53,8 @@ export default function ClientReservations() {
                 <button
                   onClick={() => setView("list")}
                   className={cn(
-                    "px-3 h-9 rounded-lg text-sm font-medium flex items-center gap-1.5 transition cursor-pointer", 
-                    view === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    "px-3 h-9 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition cursor-pointer",
+                    view === "list" ? "bg-[#0052FF] text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                   )}
                 >
                   <LayoutGrid className="h-4 w-4" /> Lista
@@ -62,8 +62,8 @@ export default function ClientReservations() {
                 <button
                   onClick={() => setView("calendar")}
                   className={cn(
-                    "px-3 h-9 rounded-lg text-sm font-medium flex items-center gap-1.5 transition cursor-pointer", 
-                    view === "calendar" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    "px-3 h-9 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition cursor-pointer",
+                    view === "calendar" ? "bg-[#0052FF] text-white shadow-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
                   )}
                 >
                   <CalendarIcon className="h-4 w-4" /> Calendario
@@ -84,8 +84,8 @@ export default function ClientReservations() {
                 className={cn(
                   "shrink-0 rounded-full px-4 py-2 text-sm font-medium border transition cursor-pointer",
                   tab === t.id
-                    ? "bg-primary text-primary-foreground border-primary shadow-brand"
-                    : "bg-card text-foreground border-border hover:border-primary/40",
+                    ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
+                    : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]",
                 )}
               >
                 {t.label}

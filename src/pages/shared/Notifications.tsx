@@ -83,7 +83,7 @@ export default function NotificationsPage() {
             <button
               type="button"
               onClick={() => history.goBack()}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-600"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver
@@ -132,8 +132,8 @@ export default function NotificationsPage() {
                   className={cn(
                     "inline-flex items-center rounded-full border px-4 py-2 text-sm font-semibold transition",
                     tab === value
-                      ? "border-primary bg-primary text-primary-foreground shadow-brand"
-                      : "border-border bg-card text-foreground hover:border-primary/40"
+                      ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
+                      : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]"
                   )}
                 >
                   {label}

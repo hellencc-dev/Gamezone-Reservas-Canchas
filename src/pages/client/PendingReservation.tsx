@@ -289,7 +289,7 @@ export default function PendingReservation() {
             <button
               type="button"
               onClick={() => history.goBack()}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-600"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver
@@ -365,7 +365,7 @@ export default function PendingReservation() {
 
               <Button
                 variant="outline"
-                className="h-12 rounded-xl"
+                className="h-12 rounded-xl border-orange-200 bg-orange-50 text-orange-700 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-800"
                 onClick={handleReleaseHold}
                 disabled={processingAction}
               >

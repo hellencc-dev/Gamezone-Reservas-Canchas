@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { Calendar, Eye, Filter, Search, XCircle } from "lucide-react";
+import { ArrowLeft, Calendar, Eye, Filter, Search, XCircle } from "lucide-react";
 import { doc, updateDoc } from "firebase/firestore";
 import { IonContent, IonPage } from "@ionic/react";
 import { db } from "../../firebase/config";
@@ -82,8 +82,9 @@ export default function AdminReservations() {
           <main className="mx-auto max-w-7xl space-y-6">
             <button
               onClick={() => history.push("/admin")}
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
+              <ArrowLeft className="h-4 w-4" />
               Volver al panel
             </button>
 
@@ -127,8 +128,8 @@ export default function AdminReservations() {
                     onClick={() => setStatus(tab.id)}
                     className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition ${
                       status === tab.id
-                        ? "border-primary bg-primary text-primary-foreground shadow-brand"
-                        : "border-border bg-card text-foreground hover:border-primary/40"
+                        ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
+                        : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]"
                     }`}
                   >
                     <Filter className="h-3.5 w-3.5" />
@@ -187,10 +188,10 @@ export default function AdminReservations() {
                         </Button>
                         {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             disabled={updatingId === reservation.id}
                             onClick={() => cancelReservation(reservation)}
-                            className="rounded-xl border-danger/40 text-danger hover:bg-danger-soft hover:text-danger"
+                            className="rounded-xl"
                           >
                             <XCircle className="mr-2 h-4 w-4" />
                             {updatingId === reservation.id ? "Cancelando..." : "Cancelar"}

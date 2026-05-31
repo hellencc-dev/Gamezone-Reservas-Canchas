@@ -185,8 +185,8 @@ export default function AdminCalendar() {
             </Select>
           </div>
           <div className="md:col-span-1">
-            <Button variant="ghost" className="w-full rounded-xl" onClick={resetFilters}>
-              Reset
+            <Button variant="outline" className="w-full rounded-xl" onClick={resetFilters}>
+              Limpiar
             </Button>
           </div>
         </div>
@@ -262,6 +262,7 @@ export default function AdminCalendar() {
                               <Button
                                 size="sm"
                                 variant="outline"
+                                className="rounded-xl"
                                 onClick={() => openDetail(reservation)}
                               >
                                 Ver detalle
@@ -269,8 +270,8 @@ export default function AdminCalendar() {
                               {reservation.status !== "cancelada" && reservation.status !== "expirada" && (
                                 <Button
                                   size="sm"
-                                  variant="outline"
-                                  className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                                  variant="destructive"
+                                  className="rounded-xl"
                                   onClick={() => cancelReservation(reservation)}
                                   disabled={updatingReservationId === reservation.id}
                                 >

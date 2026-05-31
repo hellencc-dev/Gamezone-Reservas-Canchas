@@ -44,7 +44,7 @@ export default function CourtDetail() {
     return (
       <IonPage>
         <div className="w-full min-h-screen bg-[#f8fafc] p-6 text-[#334155] space-y-4">
-          <button onClick={() => history.push("/client/courts")} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0">
+          <button onClick={() => history.push("/client/courts")} className="inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5">
             <ArrowLeft className="h-4 w-4" /> Volver a canchas
           </button>
           <p className="text-xl font-bold text-center mt-10">Cancha no encontrada</p>
@@ -69,7 +69,7 @@ export default function CourtDetail() {
             {/* Botón de regreso */}
             <button 
               onClick={() => history.push("/client/courts")} 
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0 transition-colors"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
               <ArrowLeft className="h-4 w-4" /> Volver a canchas
             </button>

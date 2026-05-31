@@ -142,7 +142,7 @@ export default function ClientHome() {
               type="button"
               variant="outline"
               onClick={handleLogout}
-              className="h-11 rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="h-11 rounded-xl border-rose-100 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
             >
               <LogOut className="mr-2 h-4 w-4" />
               Cerrar sesión

@@ -215,11 +215,11 @@ export default function CourtForm({
 
           <div className="flex justify-end gap-2 pt-2">
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
+              <Button type="button" variant="outline" className="rounded-xl" onClick={onCancel} disabled={saving}>
                 Cancelar
               </Button>
             )}
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" className="rounded-xl" disabled={saving}>
               {saving ? "Guardando..." : "Guardar cancha"}
             </Button>
           </div>

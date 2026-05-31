@@ -103,11 +103,11 @@ function HomeView() {
           Controla reservas, estado de canchas y disponibilidad desde un solo lugar.
         </p>
         <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-          <Link to="/admin#dashboard" className="inline-flex min-h-13 min-w-56 items-center justify-center gap-2 rounded-lg bg-slate-50 px-8 text-base font-semibold text-slate-800 shadow-sm transition hover:bg-white">
+          <Link to="/admin#dashboard" className="inline-flex min-h-13 min-w-56 items-center justify-center gap-2 rounded-2xl bg-white px-8 text-base font-semibold text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-md">
             Abrir dashboard
             <ArrowUpRight className="h-5 w-5" />
           </Link>
-          <Link to="/admin/reservations" className="inline-flex min-h-13 min-w-56 items-center justify-center rounded-lg border border-white/30 bg-white/10 px-8 text-base font-semibold text-white shadow-none transition hover:bg-white/20">
+          <Link to="/admin/reservations" className="inline-flex min-h-13 min-w-56 items-center justify-center rounded-2xl border border-white/35 bg-white/10 px-8 text-base font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-white/20">
             Ver reservas
           </Link>
         </div>
@@ -304,7 +304,7 @@ export default function AdminHome() {
                   <Button
                     variant="outline"
                     onClick={handleLogout}
-                    className="hidden h-10 rounded-full border-slate-200 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex"
+                    className="hidden h-10 rounded-xl border-rose-100 bg-white px-4 font-semibold text-slate-700 shadow-sm hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 sm:inline-flex"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Cerrar sesión

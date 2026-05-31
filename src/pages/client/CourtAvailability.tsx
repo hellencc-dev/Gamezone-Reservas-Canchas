@@ -139,7 +139,7 @@ export default function CourtAvailability() {
             {/* Botón de Regreso */}
             <button 
               onClick={() => history.push(`/client/courts/${court.id}`)} 
-              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer bg-transparent border-none p-0"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
             >
               <ArrowLeft className="h-4 w-4" /> Volver a {court.name}
             </button>
@@ -177,8 +177,8 @@ export default function CourtAvailability() {
                       className={cn(
                         "rounded-xl border py-3 text-center transition cursor-pointer",
                         active
-                          ? "bg-primary text-primary-foreground border-primary shadow-brand"
-                          : "bg-background border-border hover:border-primary/40",
+                          ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
+                          : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5",
                       )}
                     >
                       <div className={cn("text-[10px] uppercase tracking-wider font-semibold", active ? "opacity-80" : "text-muted-foreground")}>
@@ -226,10 +226,10 @@ export default function CourtAvailability() {
                           onClick={() => setSelectedSlot(slot)}
                           className={cn(
                             "rounded-xl border py-3 text-sm font-medium transition relative",
-                            active && "ring-2 ring-primary ring-offset-2 z-10",
-                            status === "available" && "bg-success-soft text-success border-success/20 hover:bg-success/15 cursor-pointer",
-                            status === "busy" && "bg-danger-soft text-danger border-danger/20 opacity-60 cursor-not-allowed",
-                            status === "mine" && "bg-warning-soft text-warning border-warning/30 cursor-not-allowed",
+                            active && "z-10 border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)] ring-2 ring-[#0052FF]/20 ring-offset-2",
+                            status === "available" && !active && "bg-emerald-50 text-emerald-700 border-emerald-200 hover:-translate-y-0.5 hover:bg-emerald-100 cursor-pointer shadow-sm",
+                            status === "busy" && "bg-rose-50 text-rose-700 border-rose-200 opacity-70 cursor-not-allowed",
+                            status === "mine" && "bg-orange-50 text-orange-700 border-orange-200 cursor-not-allowed",
                           )}
                         >
                           {slot}
