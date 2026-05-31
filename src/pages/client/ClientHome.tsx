@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { IonPage } from "@ionic/react";
 import {
   ArrowRight,
   CalendarCheck,
   Clock,
+  Dumbbell,
   Flame,
   LogOut,
   MapPin,
@@ -29,6 +30,31 @@ import {
   isActiveTemporaryReservation,
 } from "../../helpers/availabilityHelpers";
 import { normalizeReservationStatus } from "../../components/status-badge";
+
+function normalizeSportKey(value?: string) {
+  return (value || "")
+    .trim()
+    .toLocaleLowerCase("es-CO")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function formatSportName(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toLocaleUpperCase("es-CO") + word.slice(1).toLocaleLowerCase("es-CO"))
+    .join(" ");
+}
+
+const sportGradients = [
+  "from-emerald-500 to-teal-600",
+  "from-amber-400 to-orange-500",
+  "from-blue-500 to-indigo-600",
+  "from-violet-500 to-fuchsia-600",
+  "from-rose-500 to-orange-500",
+  "from-cyan-500 to-blue-600",
+];
 
 export default function ClientHome() {
   const { user, logout } = useAuth();
@@ -116,11 +142,29 @@ export default function ClientHome() {
     { label: "Puntos de fidelidad", value: 1840, icon: TrendingUp, tint: "bg-warning-soft text-warning" },
   ];
 
-  const sports = [
-    { id: "futbol", name: "Fútbol", courts: 5, gradient: "from-emerald-500 to-teal-600" },
-    { id: "tenis", name: "Tenis", courts: 3, gradient: "from-amber-400 to-orange-500" },
-    { id: "baloncesto", name: "Baloncesto", courts: 2, gradient: "from-blue-500 to-indigo-600" },
-  ];
+  const sports = useMemo(() => {
+    const bySport = new Map<string, { id: string; name: string; courts: number; gradient: string }>();
+
+    (courts || []).forEach((court) => {
+      const id = normalizeSportKey(court.sport);
+      if (!id) return;
+
+      const existing = bySport.get(id);
+      if (existing) {
+        existing.courts += 1;
+        return;
+      }
+
+      bySport.set(id, {
+        id,
+        name: formatSportName(court.sport),
+        courts: 1,
+        gradient: sportGradients[bySport.size % sportGradients.length],
+      });
+    });
+
+    return Array.from(bySport.values()).sort((a, b) => a.name.localeCompare(b.name, "es"));
+  }, [courts]);
 
   return (
     <IonPage className="min-h-screen overflow-auto bg-[#f8fafc]">
@@ -166,14 +210,14 @@ export default function ClientHome() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button
                 variant="secondary"
-                className="h-11 rounded-xl bg-white px-5 font-semibold text-blue-700 shadow-sm hover:bg-slate-50"
+                className="h-12 rounded-2xl bg-white px-6 text-base font-bold text-blue-700 shadow-md hover:bg-slate-50"
                 onClick={() => history.push("/client/courts", { selectedSport: "all" })}
               >
                 <Plus className="mr-1 h-4 w-4" /> Reservar cancha
               </Button>
               <Button
                 variant="outline"
-                className="h-11 rounded-xl border-white/30 bg-transparent px-5 font-semibold text-white hover:bg-white/10 hover:text-white"
+                className="h-12 rounded-2xl border-white/35 bg-white/10 px-6 text-base font-bold text-white shadow-sm hover:bg-white/20 hover:text-white"
                 onClick={() => history.push("/client/reservations")}
               >
                 Mis reservas
@@ -201,17 +245,22 @@ export default function ClientHome() {
               Ver todo <ArrowRight className="ml-1 h-3 w-3" />
             </Button>
           </div>
-          <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+            {sports.length === 0 && (
+              <div className="col-span-full rounded-2xl border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
+                No hay deportes configurados todavía.
+              </div>
+            )}
             {sports.map((sport) => (
               <div
                 key={sport.id}
                 onClick={() => history.push("/client/courts", { selectedSport: sport.id })}
-                className="cursor-pointer rounded-2xl border border-border bg-card p-4 text-center shadow-sm transition-all hover:border-primary/40 hover:shadow-elevated"
+                className="group cursor-pointer rounded-2xl border border-border bg-card p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elevated"
               >
                 <div className={`mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${sport.gradient}`}>
-                  <span className="text-white">●</span>
+                  <Dumbbell className="h-6 w-6 text-white" />
                 </div>
-                <div className="mt-3 text-sm font-medium">{sport.name}</div>
+                <div className="mt-3 text-sm font-bold text-foreground group-hover:text-primary">{sport.name}</div>
                 <div className="text-[11px] text-muted-foreground">{sport.courts} canchas</div>
               </div>
             ))}

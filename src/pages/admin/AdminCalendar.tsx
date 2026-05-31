@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { doc, updateDoc } from "firebase/firestore";
-import { CalendarDays, LayoutGrid, List, Search } from "lucide-react";
+import { CalendarDays, Filter, LayoutGrid, List, Search } from "lucide-react";
 
 import { db } from "../../firebase/config";
 import AdminReservationCard from "../../components/admin/AdminReservationCard";
@@ -16,13 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import {
   type AdminReservation,
   type ReservationStatus,
@@ -152,7 +145,7 @@ export default function AdminCalendar() {
 
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-12">
-          <div className="relative md:col-span-5">
+          <div className="relative md:col-span-4">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por reserva, cancha o usuario..."
@@ -161,7 +154,7 @@ export default function AdminCalendar() {
               className="rounded-xl pl-9"
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
             <Input
               type="date"
               value={date}
@@ -169,20 +162,27 @@ export default function AdminCalendar() {
               className="rounded-xl"
             />
           </div>
-          <div className="md:col-span-3">
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="rounded-xl">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                {STATUSES.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {STATUS_LABELS[item]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="md:col-span-5">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <button
+                type="button"
+                className={status === "all" ? "gz-chip gz-chip-active" : "gz-chip"}
+                onClick={() => setStatus("all")}
+              >
+                <Filter className="h-3.5 w-3.5" />
+                Todos
+              </button>
+              {STATUSES.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className={status === item ? "gz-chip gz-chip-active" : "gz-chip"}
+                  onClick={() => setStatus(item)}
+                >
+                  {STATUS_LABELS[item]}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="md:col-span-1">
             <Button variant="outline" className="w-full rounded-xl" onClick={resetFilters}>

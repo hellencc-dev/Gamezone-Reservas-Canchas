@@ -92,7 +92,7 @@ export default function CourtsPage() {
               <button
                 type="button"
                 onClick={() => history.push("/client")}
-                className="mb-4 inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
+                className="gz-back-button mb-4"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Volver al inicio
@@ -137,14 +137,19 @@ export default function CourtsPage() {
               <span>Ordenar por:</span>
               <button 
                 onClick={() => setSort("rating")} 
-                className={cn("font-medium cursor-pointer transition", sort === "rating" ? "text-primary font-semibold" : "hover:text-foreground")}
+                className={cn(
+                  "gz-chip px-3 py-1.5 text-xs",
+                  sort === "rating" && "gz-chip-active",
+                )}
               >
                 Mejor calificación
               </button>
-              <span>·</span>
               <button 
                 onClick={() => setSort("price")} 
-                className={cn("font-medium cursor-pointer transition", sort === "price" ? "text-primary font-semibold" : "hover:text-foreground")}
+                className={cn(
+                  "gz-chip px-3 py-1.5 text-xs",
+                  sort === "price" && "gz-chip-active",
+                )}
               >
                 Precio
               </button>
@@ -189,10 +194,8 @@ function Chip({
     <button
       onClick={onClick}
       className={cn(
-        "shrink-0 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium border transition cursor-pointer",
-        active
-          ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)]"
-          : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]",
+        "gz-chip cursor-pointer",
+        active && "gz-chip-active",
       )}
     >
       {children}

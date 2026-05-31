@@ -10,13 +10,6 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { type CourtFirebase, type CourtInput, useCourts } from "../../hooks/useCourts";
 import CourtForm from "./CourtForm";
 
@@ -99,8 +92,8 @@ export default function ManageCourts() {
         </Button>
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-card p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_160px]">
+      <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
+        <div className="grid gap-4">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -111,30 +104,34 @@ export default function ManageCourts() {
             />
           </div>
 
-          <Select value={sport} onValueChange={setSport}>
-            <SelectTrigger className="h-11 rounded-xl bg-white shadow-sm">
-              <SelectValue placeholder="Deporte" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {SPORTS.map((item) => (
-                <SelectItem key={item} value={item}>
-                  {item}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Deporte
+            </span>
+            <button className={sport === "all" ? "gz-chip gz-chip-active" : "gz-chip"} onClick={() => setSport("all")}>
+              Todos
+            </button>
+            {SPORTS.map((item) => (
+              <button key={item} className={sport === item ? "gz-chip gz-chip-active" : "gz-chip"} onClick={() => setSport(item)}>
+                {item}
+              </button>
+            ))}
+          </div>
 
-          <Select value={active} onValueChange={setActive}>
-            <SelectTrigger className="h-11 rounded-xl bg-white shadow-sm">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Activas</SelectItem>
-              <SelectItem value="inactive">Inactivas</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Estado
+            </span>
+            {[
+              ["all", "Todas"],
+              ["active", "Activas"],
+              ["inactive", "Inactivas"],
+            ].map(([value, label]) => (
+              <button key={value} className={active === value ? "gz-chip gz-chip-active" : "gz-chip"} onClick={() => setActive(value)}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

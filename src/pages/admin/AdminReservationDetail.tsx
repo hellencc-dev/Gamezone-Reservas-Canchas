@@ -78,7 +78,7 @@ export default function AdminReservationDetail() {
           <main className="mx-auto max-w-5xl space-y-6">
             <button
               onClick={() => history.push("/admin/reservations")}
-              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
+              className="gz-back-button"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver a reservas

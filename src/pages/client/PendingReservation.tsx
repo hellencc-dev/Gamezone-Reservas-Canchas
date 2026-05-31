@@ -289,7 +289,7 @@ export default function PendingReservation() {
             <button
               type="button"
               onClick={() => history.goBack()}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
+              className="gz-back-button"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver
@@ -356,7 +356,7 @@ export default function PendingReservation() {
             <div className="grid gap-3 sm:grid-cols-2">
               <Button
                 onClick={handleConfirmAndPay}
-                className="h-12 rounded-xl font-medium shadow-brand"
+                className="h-12 rounded-2xl text-base font-bold shadow-brand"
                 disabled={timeLeft === 0 || processingAction}
               >
                 <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -365,7 +365,7 @@ export default function PendingReservation() {
 
               <Button
                 variant="outline"
-                className="h-12 rounded-xl border-orange-200 bg-orange-50 text-orange-700 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-800"
+                className="h-12 rounded-2xl border-orange-200 bg-orange-50 text-base font-bold text-orange-700 hover:border-orange-300 hover:bg-orange-100 hover:text-orange-800"
                 onClick={handleReleaseHold}
                 disabled={processingAction}
               >

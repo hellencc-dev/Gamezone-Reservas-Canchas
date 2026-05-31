@@ -176,7 +176,7 @@ export default function BookCourt() {
             
             <button 
               onClick={() => history.push(`/client/courts/${court.id}/availability`)} 
-              className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#0052FF]/15 bg-white px-4 py-2 text-sm font-semibold text-[#0052FF] shadow-sm transition hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5"
+              className="gz-back-button"
             >
               <ArrowLeft className="h-4 w-4" /> Volver a disponibilidad
             </button>
@@ -200,7 +200,7 @@ export default function BookCourt() {
                         className={cn(
                           "rounded-xl border py-4 text-center transition cursor-pointer flex flex-col items-center justify-center",
                           duration === m
-                            ? "border-[#0052FF] bg-[#0052FF] text-white shadow-[0_10px_24px_-14px_rgba(0,82,255,0.55)] font-semibold"
+                            ? "border-[#0052FF] bg-[#0052FF] text-white shadow-brand font-semibold"
                             : "border-slate-200 bg-white text-slate-700 shadow-sm hover:-translate-y-0.5 hover:border-[#0052FF]/35 hover:bg-[#0052FF]/5 hover:text-[#0052FF]",
                         )}
                       >
